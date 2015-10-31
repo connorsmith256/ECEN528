@@ -119,47 +119,49 @@ void init_latency(void) {
 }
 
 int handle_option(char *arg) {
-  if (!strncmp(arg,"--lat:int=",10)) {
-    latency[INT_UNIT] = atoi(arg+10);
-}
-else if (!strncmp(arg,"--lat:add=",10)) {
-    latency[ADD_UNIT] = atoi(arg+10);
-}
-else if (!strncmp(arg,"--lat:load=",11)) {
-    latency[LOAD_UNIT]=atoi(arg+11);
-}
-else if (!strncmp(arg,"--lat:mul=",10)) {
-    latency[MUL_UNIT] = atoi(arg+10);
-}
-else if (!strncmp(arg,"--lat:div=",10)) {
-    latency[DIV_UNIT] = atoi(arg+10);
-}
-else if (!strcmp(arg,"--bp=none")) {
-    bpType = NOBP;
-}
-else if (!strcmp(arg,"--bp=perfect")) {
-    bpType = PERFECTBP;
-}
-else if (!strcmp(arg,"--bp=static")) {
-    bpType = STATICBP;
-}
-else if (!strncmp(arg,"--bp=dynamic:",13)) {
-    bpType = DYNAMICBP;
-    sscanf(arg+13,"%d:%d", &historyBits, &btbSize);
-}
-else if (!strcmp(arg,"--labBP")) {
-    init_latencyBP();
-}
-else return 0;
-return 1;
+    if (!strncmp(arg,"--lat:int=",10)) {
+        latency[INT_UNIT] = atoi(arg+10);
+    }
+    else if (!strncmp(arg,"--lat:add=",10)) {
+        latency[ADD_UNIT] = atoi(arg+10);
+    }
+    else if (!strncmp(arg,"--lat:load=",11)) {
+        latency[LOAD_UNIT]=atoi(arg+11);
+    }
+    else if (!strncmp(arg,"--lat:mul=",10)) {
+        latency[MUL_UNIT] = atoi(arg+10);
+    }
+    else if (!strncmp(arg,"--lat:div=",10)) {
+        latency[DIV_UNIT] = atoi(arg+10);
+    }
+    else if (!strcmp(arg,"--bp=none")) {
+        bpType = NOBP;
+    }
+    else if (!strcmp(arg,"--bp=perfect")) {
+        bpType = PERFECTBP;
+    }
+    else if (!strcmp(arg,"--bp=static")) {
+        bpType = STATICBP;
+    }
+    else if (!strncmp(arg,"--bp=dynamic:",13)) {
+        bpType = DYNAMICBP;
+        sscanf(arg+13,"%d:%d", &historyBits, &btbSize);
+    }
+    else if (!strcmp(arg,"--labBP")) {
+        init_latencyBP();
+    }
+    else {
+        return 0;
+    }
+    return 1;
 }
 
 void print_options(FILE *fp) {
-  fprintf(fp," --labBP           Set parameters to no branch predictor\n");
-  fprintf(fp," --lat:<unit>=<#>  Set latency of unit to #\n");
-  fprintf(fp,"                   Units are int,load,add,mul,div\n");
-  fprintf(fp," --bp=<type>       Branch prediction:\n");
-  fprintf(fp,"                   Types are none, perfect, static, dynamic:<# history bits>:<btb size>\n");
+    fprintf(fp," --labBP           Set parameters to no branch predictor\n");
+    fprintf(fp," --lat:<unit>=<#>  Set latency of unit to #\n");
+    fprintf(fp,"                   Units are int,load,add,mul,div\n");
+    fprintf(fp," --bp=<type>       Branch prediction:\n");
+    fprintf(fp,"                   Types are none, perfect, static, dynamic:<# history bits>:<btb size>\n");
 }
 
 int mylog2(n)
@@ -178,8 +180,7 @@ void clearstall(void)
        initializes all data structures used to track timing. */
 
     int i;
-    for (i = 0; i < 32; i++)
-    {
+    for (i = 0; i < 32; i++) {
         IRstamps[i] = 0;
         FRstamps[i] = 0;
         DRstamps[i] = 0;
@@ -193,15 +194,15 @@ void clearstall(void)
     totalcycles = 0;
     prevIFcycle = 0;
     prevIDcycle = 0;
-    for (i = 0; i < MAXUNITS; i++)
-    {
+    for (i = 0; i < MAXUNITS; i++) {
         specstalls[i][0] = 0;
         specstalls[i][1] = 0;
     }
 
     branchstalls = 0;
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++) {
         countMP[i] = 0;
+    }
     totalMP = 0;
 
     /*
@@ -222,8 +223,7 @@ void clearstall(void)
 }
 
 void addstalls(int s1type, int src1, int s2type, int src2, int
-    funit, int rtype, int result)
-{
+        funit, int rtype, int result) {
     /*   s1type, s2type, rtype:
         NONE (0) => no operand
         INTR (1) => int register
@@ -264,12 +264,12 @@ void addstalls(int s1type, int src1, int s2type, int src2, int
        3. Update the time stamp for the destination register (if any)
        with the last cycle on which the new value is NOT available */
 
-       int i,max1,maxunit1,max2,maxunit2,max3,maxunit3,stalls;
-       unsigned long BGcycle,IFcycle,IDcycle,EXcycle,MEMcycle,WBcycle;
-       char stallstr[200], tmpbuf[200];
+    int i,max1,maxunit1,max2,maxunit2,max3,maxunit3,stalls;
+    unsigned long BGcycle,IFcycle,IDcycle,EXcycle,MEMcycle,WBcycle;
+    char stallstr[200], tmpbuf[200];
 
     /* clear output strings if they will be used */
-       if (verbose || in_execution) {
+    if (verbose || in_execution) {
         verbosestr[0] = '\0';
         stallstr[0] = '\0';
     }
@@ -291,29 +291,25 @@ void addstalls(int s1type, int src1, int s2type, int src2, int
         case NONE:
         break;
         case INTR:
-        if (IRstamps[src1] > IDcycle)
-        {
+        if (IRstamps[src1] > IDcycle) {
             max1 = IRstamps[src1];
             maxunit1 = IRwriter[src1];
         }
         break;
         case FPR:
-        if (FRstamps[src1] > IDcycle)
-        {
+        if (FRstamps[src1] > IDcycle) {
             max1 = FRstamps[src1];
             maxunit1 = FRwriter[src1];
         }
         break;
         case DPR:
-        if (DRstamps[src1] > IDcycle)
-        {
+        if (DRstamps[src1] > IDcycle) {
             max1 = DRstamps[src1];
             maxunit1 = DRwriter[src1];
         }
         break;
         case FPS:
-        if (FPSstamps > IDcycle)
-        {
+        if (FPSstamps > IDcycle) {
             max1 = FPSstamps;
             maxunit1 = FPSwriter;
         }
@@ -323,152 +319,137 @@ void addstalls(int s1type, int src1, int s2type, int src2, int
     max2 = 0;
     /* check second operand  */
     /* special case handling for stores */
-    if (funit == LOAD_UNIT && s2type != NONE)
-    {                /* this is a store */
+    if (funit == LOAD_UNIT && s2type != NONE) {     /* this is a store */
         switch (s2type)
-    {
-        case INTR:
-        if (IRstamps[src2]-1 > IDcycle)
         {
-            max2 = IRstamps[src2]-1;
-            maxunit2 = IRwriter[src2];
+            case INTR:
+            if (IRstamps[src2]-1 > IDcycle) {
+                max2 = IRstamps[src2]-1;
+                maxunit2 = IRwriter[src2];
+            }
+            break;
+            case FPR:
+            if (FRstamps[src2]-1 > IDcycle) {
+                max2 = FRstamps[src2]-1;
+                maxunit2 = FRwriter[src2];
+            }
+            break;
+            case DPR:
+            if (DRstamps[src2]-1 > IDcycle) {
+                max2 = DRstamps[src2]-1;
+                maxunit2 = DRwriter[src2];
+            }
+            break;
         }
-        break;
-        case FPR:
-        if (FRstamps[src2]-1 > IDcycle)
-        {
-            max2 = FRstamps[src2]-1;
-            maxunit2 = FRwriter[src2];
-        }
-        break;
-
-        case DPR:
-        if (DRstamps[src2]-1 > IDcycle)
-        {
-            max2 = DRstamps[src2]-1;
-            maxunit2 = DRwriter[src2];
-        }
-        break;
     }
-}
-else
-{
-    switch (s2type)        /* check second operand  */
-    {
-        case NONE:
-        break;
-        case INTR:
-        if (IRstamps[src2] > IDcycle)
+    else {
+        switch (s2type)        /* check second operand  */
         {
-            max2 = IRstamps[src2];
-            maxunit2 = IRwriter[src2];
+            case NONE:
+            break;
+            case INTR:
+            if (IRstamps[src2] > IDcycle) {
+                max2 = IRstamps[src2];
+                maxunit2 = IRwriter[src2];
+            }
+            break;
+            case FPR:
+            if (FRstamps[src2] > IDcycle) {
+                max2 = FRstamps[src2];
+                maxunit2 = FRwriter[src2];
+            }
+            break;
+            case DPR:
+            if (DRstamps[src2] > IDcycle) {
+                max2 = DRstamps[src2];
+                maxunit2 = DRwriter[src2];
+            }
+            break;
+            case FPS:
+            if (FPSstamps > IDcycle) {
+                max2 = FPSstamps;
+                maxunit2 = FPSwriter;
+            }
+            break;
         }
-        break;
-        case FPR:
-        if (FRstamps[src2] > IDcycle)
-        {
-            max2 = FRstamps[src2];
-            maxunit2 = FRwriter[src2];
-        }
-        break;
-        case DPR:
-        if (DRstamps[src2] > IDcycle)
-        {
-            max2 = DRstamps[src2];
-            maxunit2 = DRwriter[src2];
-        }
-        break;
-        case FPS:
-        if (FPSstamps > IDcycle)
-        {
-            max2 = FPSstamps;
-            maxunit2 = FPSwriter;
-        }
-        break;
     }
-}
 
     /* check for WAW hazards, but only if destination register != src
        regs */
-max3 = 0;
-if ((s1type != rtype || src1 != result) &&
-    (s2type != rtype || src2 != result))
-{
-    switch (rtype)        /* check destination register */
-    {
-        case NONE:
-        break;
-        case INTR:
-        if (IRstamps[result] > IDcycle)
+    max3 = 0;
+    if ((s1type != rtype || src1 != result) &&
+        (s2type != rtype || src2 != result)) {
+        switch (rtype)        /* check destination register */
         {
-            max3 = IRstamps[result]+2;
-            maxunit3 = IRwriter[result];
+            case NONE:
+            break;
+            case INTR:
+            if (IRstamps[result] > IDcycle) {
+                max3 = IRstamps[result]+2;
+                maxunit3 = IRwriter[result];
+            }
+            break;
+            case FPR:
+            if (FRstamps[result] > IDcycle) {
+                max3 = FRstamps[result]+2;
+                maxunit3 = FRwriter[result];
+            }
+            break;
+            case DPR:
+            if (DRstamps[result] > IDcycle) {
+                max3 = DRstamps[result]+2;
+                maxunit3 = DRwriter[result];
+            }
+            break;
+            case FPS:
+            if (FPSstamps > IDcycle) {
+                max3 = FPSstamps+2;
+                maxunit3 = FPSwriter;
+            }
+            break;
         }
-        break;
-        case FPR:
-        if (FRstamps[result] > IDcycle)
-        {
-            max3 = FRstamps[result]+2;
-            maxunit3 = FRwriter[result];
-        }
-        break;
-        case DPR:
-        if (DRstamps[result] > IDcycle)
-        {
-            max3 = DRstamps[result]+2;
-            maxunit3 = DRwriter[result];
-        }
-        break;
-        case FPS:
-        if (FPSstamps > IDcycle)
-        {
-            max3 = FPSstamps+2;
-            maxunit3 = FPSwriter;
-        }
-        break;
     }
-}
 
     /* 2. increment IDcycle if stall occurs, update statistics */
-if (max1 > 0 || max2 > 0 || max3 > 0)
-    {                /* stall occurs */
-    if (max2 > max1)    /* set max1 to longest src op */
-{
-    max1 = max2;
-    maxunit1 = maxunit2;
-}
-if (max3 > max1)
-{
-  stalls = max3-IDcycle;
-      if (verbose || in_execution) {/* update output string */
-  sprintf(tmpbuf, " WAW:(%d, %s)", stalls, f_unit_name[maxunit3]);
-  strcat(stallstr,tmpbuf);
-}
-specstalls[maxunit3][WAWindex] += stalls;
-totalstalls += stalls;
-IDcycle = max3;
-}
-else
-{
-  stalls = max1-IDcycle;
-      if (verbose || in_execution) { /* update stall string */
-  sprintf(tmpbuf, " RAW:(%d, %s)", stalls, f_unit_name[maxunit1]);
-  strcat(stallstr,tmpbuf);
-}
-specstalls[maxunit1][RAWindex] += stalls;
-totalstalls += stalls;
-IDcycle = max1;
-}
-}
+    if (max1 > 0 || max2 > 0 || max3 > 0) {         /* stall occurs */
+        if (max2 > max1)    /* set max1 to longest src op */
+        {
+            max1 = max2;
+            maxunit1 = maxunit2;
+        }
+        if (max3 > max1) {
+            stalls = max3-IDcycle;
+            if (verbose || in_execution) {/* update output string */
+                sprintf(tmpbuf, " WAW:(%d, %s)", stalls, f_unit_name[maxunit3]);
+                strcat(stallstr,tmpbuf);
+            }
+            specstalls[maxunit3][WAWindex] += stalls;
+            totalstalls += stalls;
+            IDcycle = max3;
+        }
+        else {
+            stalls = max1-IDcycle;
+            if (verbose || in_execution) { /* update stall string */
+                sprintf(tmpbuf, " RAW:(%d, %s)", stalls, f_unit_name[maxunit1]);
+                strcat(stallstr,tmpbuf);
+            }
+            specstalls[maxunit1][RAWindex] += stalls;
+            totalstalls += stalls;
+            IDcycle = max1;
+        }
+    }
     else {    /* no stall occurs and IDcycle is okay */
-}
+
+    }
 
     /* wrap up stage timings */
-prevIDcycle = IDcycle;
-if (funit == NOP_UNIT)
-    EXcycle = IDcycle + 1;    /* nops + traps*/
-    else
+    prevIDcycle = IDcycle;
+    if (funit == NOP_UNIT) {
+        EXcycle = IDcycle + 1;    /* nops + traps*/
+    }
+    else {
         EXcycle = IDcycle + latency[funit];
+    }
 
     MEMcycle = EXcycle + 1;     /* perfect D-cache: never misses */
     WBcycle = MEMcycle + 1;
@@ -499,57 +480,56 @@ if (funit == NOP_UNIT)
 
     if (branchRedirect) /* in delay slot of mispred */
     {
-    if (branchRedirect > IDcycle) { /* nominal time */
-      stalls = branchRedirect - IDcycle;
-      totalstalls += stalls;
-      branchstalls += stalls;
+        if (branchRedirect > IDcycle) { /* nominal time */
+            stalls = branchRedirect - IDcycle;
+            totalstalls += stalls;
+            branchstalls += stalls;
 
-      if (verbose || in_execution) {
-        sprintf(tmpbuf, " BP:(%d)", stalls);
-        strcat(stallstr,tmpbuf);
+            if (verbose || in_execution) {
+                sprintf(tmpbuf, " BP:(%d)", stalls);
+                strcat(stallstr,tmpbuf);
+            }
+
+            //prevIFcycle = branchRedirect-1;
+            prevIDcycle = branchRedirect; /* so stalls end up not being fetch */
+
+        }
+        else {
+            /* make sure we don't say we fetched it ridiculously early when
+            * instruction in delay slot stalled
+            */
+            prevIFcycle = max(branchRedirect-1,prevIFcycle);
+            if (verbose || in_execution) {
+                sprintf(tmpbuf, " BP:(0)");
+                strcat(stallstr, tmpbuf);
+            }
+        }
+        branchRedirect = 0;
     }
-
-      //prevIFcycle = branchRedirect-1;
-      prevIDcycle = branchRedirect; /* so stalls end up not being fetch */
-
-} else {
-      /* make sure we don't say we fetched it ridiculously early when
-       * instruction in delay slot stalled
-       */
-       prevIFcycle = max(branchRedirect-1,prevIFcycle);
-       if (verbose || in_execution) {
-        sprintf(tmpbuf, " BP:(0)");
-        strcat(stallstr, tmpbuf);
+    {
+        int brlat;
+        /* take a look at branches */
+        if ((brlat=handle_branch(branch_flag, pc, ir, newpc))) { /* mispredicted */
+            branchRedirect = IDcycle + brlat; /* time when new IF should occur */
+        }
+        else {
+            branchRedirect = 0;
+        }
     }
-}
-branchRedirect = 0;
-}
-{
-  int brlat;
-      /* take a look at branches */
-      if ((brlat=handle_branch(branch_flag, pc, ir, newpc))) { /* mispredicted */
-    branchRedirect = IDcycle + brlat; /* time when new IF should occur */
-}
-else {
-    branchRedirect = 0;
-}
-}
 
     /* generate verbose output if desired */
-if (verbose || in_execution)
-{
-    sprintf(verbosestr,"[%5lu IF+%2lu ID+%2lu (%5lu) EX+%2lu MEM+%2lu]%s",
+    if (verbose || in_execution) {
+        sprintf(verbosestr,"[%5lu IF+%2lu ID+%2lu (%5lu) EX+%2lu MEM+%2lu]%s",
         BGcycle,IFcycle-BGcycle,IDcycle-IFcycle,IDcycle,
         EXcycle-IDcycle, MEMcycle-EXcycle, stallstr);
-}
+    }
 
     /* NOTE: if you want to see the branch predictor state after every branch,
        uncomment the following line */
     /* if (branch_flag != NOTABRANCH) zpressed(); */
 }
 
-void tpressed(void)
-{
+void tpressed(void) {
     /* This function is called when the user presses the 't' key at
        the mydlx> prompt.  It prints timing information, including
        classifications of stall types to give you some idea what you
@@ -558,139 +538,134 @@ void tpressed(void)
        routine and the data structures it accesses need to be
        updated. */
 
-       if (totalcycles == 0)
-       {
+    if (totalcycles == 0) {
         printf("  No instructions executed\n");
         return;
     }
     printf("  Stall cycles\n");
     printf("    integer:  RAW        %10u  [%2d%%]\n",
-     specstalls[INT_UNIT][RAWindex],
-     (int)(specstalls[INT_UNIT][RAWindex]/(totalcycles/100.0)));
+        specstalls[INT_UNIT][RAWindex],
+        (int)(specstalls[INT_UNIT][RAWindex]/(totalcycles/100.0)));
     printf("              WAW        %10u  [%2d%%]\n",
-     specstalls[INT_UNIT][WAWindex],
-     (int)(specstalls[INT_UNIT][WAWindex]/(totalcycles/100.0)));
+        specstalls[INT_UNIT][WAWindex],
+        (int)(specstalls[INT_UNIT][WAWindex]/(totalcycles/100.0)));
     printf("    ld/store: RAW        %10u  [%2d%%]\n",
-     specstalls[LOAD_UNIT][RAWindex],
-     (int)(specstalls[LOAD_UNIT][RAWindex]/(totalcycles/100.0)));
+        specstalls[LOAD_UNIT][RAWindex],
+        (int)(specstalls[LOAD_UNIT][RAWindex]/(totalcycles/100.0)));
     printf("              WAW        %10u  [%2d%%]\n",
-     specstalls[LOAD_UNIT][WAWindex],
-     (int)(specstalls[LOAD_UNIT][WAWindex]/(totalcycles/100.0)));
+        specstalls[LOAD_UNIT][WAWindex],
+        (int)(specstalls[LOAD_UNIT][WAWindex]/(totalcycles/100.0)));
     printf("    FP add:   RAW        %10u  [%2d%%]\n",
-     specstalls[ADD_UNIT][RAWindex],
-     (int)(specstalls[ADD_UNIT][RAWindex]/(totalcycles/100.0)));
+        specstalls[ADD_UNIT][RAWindex],
+        (int)(specstalls[ADD_UNIT][RAWindex]/(totalcycles/100.0)));
     printf("              WAW        %10u  [%2d%%]\n",
-     specstalls[ADD_UNIT][WAWindex],
-     (int)(specstalls[ADD_UNIT][WAWindex]/(totalcycles/100.0)));
+        specstalls[ADD_UNIT][WAWindex],
+        (int)(specstalls[ADD_UNIT][WAWindex]/(totalcycles/100.0)));
     printf("    FP mult:  RAW        %10u  [%2d%%]\n",
-     specstalls[MUL_UNIT][RAWindex],
-     (int)(specstalls[MUL_UNIT][RAWindex]/(totalcycles/100.0)));
+        specstalls[MUL_UNIT][RAWindex],
+        (int)(specstalls[MUL_UNIT][RAWindex]/(totalcycles/100.0)));
     printf("              WAW        %10u  [%2d%%]\n",
-     specstalls[MUL_UNIT][WAWindex],
-     (int)(specstalls[MUL_UNIT][WAWindex]/(totalcycles/100.0)));
+        specstalls[MUL_UNIT][WAWindex],
+        (int)(specstalls[MUL_UNIT][WAWindex]/(totalcycles/100.0)));
     printf("    FP div:   RAW        %10u  [%2d%%]\n",
-     specstalls[DIV_UNIT][RAWindex],
-     (int)(specstalls[DIV_UNIT][RAWindex]/(totalcycles/100.0)));
+        specstalls[DIV_UNIT][RAWindex],
+        (int)(specstalls[DIV_UNIT][RAWindex]/(totalcycles/100.0)));
     printf("              WAW        %10u  [%2d%%]\n",
-     specstalls[DIV_UNIT][WAWindex],
-     (int)(specstalls[DIV_UNIT][WAWindex]/(totalcycles/100.0)));
+        specstalls[DIV_UNIT][WAWindex],
+        (int)(specstalls[DIV_UNIT][WAWindex]/(totalcycles/100.0)));
     printf("    branch:              %10u  [%2d%%]\n",
-     branchstalls,
-     (int)(branchstalls/(totalcycles/100.0)));
+        branchstalls,
+        (int)(branchstalls/(totalcycles/100.0)));
     printf("  Total stalls:          %10u  [%2d%%]\n",
-     totalstalls, (int)(totalstalls/(totalcycles/100.0)));
+        totalstalls, (int)(totalstalls/(totalcycles/100.0)));
     printf("  Total nops:            %10u  [%2d%%]\n",
-     nop_count,(int)(nop_count/(totalcycles/100.0)));
+        nop_count,(int)(nop_count/(totalcycles/100.0)));
     printf("  Total wasted cycles:   %10u  [%2d%%]\n",
-     nop_count+totalstalls,(int)((nop_count+totalstalls) /
-         (totalcycles/100.0)));
+        nop_count+totalstalls,(int)((nop_count+totalstalls) /
+        (totalcycles/100.0)));
     printf("  Useful instr:          %10u \n",i_count-nop_count);
     printf("  Total cycles:          %10u \n",totalcycles);
     printf("  CPI:                   %10.2f\n",(double) totalcycles /
-     (i_count-nop_count));
-    if (b_count == 0 && j_count == 0)
+        (i_count-nop_count));
+    if (b_count == 0 && j_count == 0) {
         printf("  No branches executed\n");
-    else
-    {
-        if (bpType == DYNAMICBP) {
-
-          printf("  Mispred. br/jmps:      %10d [%2d%% of %d br/jmps]\n",totalMP,
-           (int)(totalMP/((b_count+j_count)/100.0)),b_count+j_count);
-          printf("    BTB misses:          %10d [%2d%%]\n",countMP[0],
-           (int)(countMP[0]/((b_count+j_count)/100.0)));
-          printf("    hit, wrong outcome:  %10d [%2d%%]\n",countMP[1],
-           (int)(countMP[1]/((b_count+j_count)/100.0)));
-          printf("    hit, wrong address:  %10d [%2d%%]\n",countMP[2],
-           (int)(countMP[2]/((b_count+j_count)/100.0)));
-          if (totalMP == 0)
-            printf("    No mispredictions\n");
-        else {
-            printf("    avg stalls/mispred:  %10.2f \n",
-             (double) (branchstalls)/(double) (totalMP));
-        }
-    } else if (bpType == STATICBP) {
-
-      printf("  Mispred. br/jmps:      %10d [%2d%% of %d br/jmps]\n",totalMP,
-       (int)(totalMP/((b_count+j_count)/100.0)),b_count+j_count);
-      printf("    wrong prediction:    %10d [%2d%%]\n",countMP[1],
-       (int)(countMP[1]/((b_count+j_count)/100.0)));
-      if (totalMP == 0)
-        printf("    No mispredictions\n");
-    else {
-        printf("    avg stalls/mispred:  %10.2f \n",
-         (double) (branchstalls)/(double) (totalMP));
     }
-}
-}
+    else {
+        if (bpType == DYNAMICBP) {
+            printf("  Mispred. br/jmps:      %10d [%2d%% of %d br/jmps]\n",totalMP,
+                (int)(totalMP/((b_count+j_count)/100.0)),b_count+j_count);
+            printf("    BTB misses:          %10d [%2d%%]\n",countMP[0],
+                (int)(countMP[0]/((b_count+j_count)/100.0)));
+            printf("    hit, wrong outcome:  %10d [%2d%%]\n",countMP[1],
+                (int)(countMP[1]/((b_count+j_count)/100.0)));
+            printf("    hit, wrong address:  %10d [%2d%%]\n",countMP[2],
+                (int)(countMP[2]/((b_count+j_count)/100.0)));
+            if (totalMP == 0) {
+                printf("    No mispredictions\n");
+            }
+            else {
+                printf("    avg stalls/mispred:  %10.2f \n",
+                    (double) (branchstalls)/(double) (totalMP));
+            }
+        }
+        else if (bpType == STATICBP) {
+            printf("  Mispred. br/jmps:      %10d [%2d%% of %d br/jmps]\n",totalMP,
+                (int)(totalMP/((b_count+j_count)/100.0)),b_count+j_count);
+            printf("    wrong prediction:    %10d [%2d%%]\n",countMP[1],
+                (int)(countMP[1]/((b_count+j_count)/100.0)));
+            if (totalMP == 0) {
+                printf("    No mispredictions\n");
+            }
+            else {
+                printf("    avg stalls/mispred:  %10.2f \n",
+                    (double) (branchstalls)/(double) (totalMP));
+            }
+        }
+    }
 }
 
 static char *bpredtypename[] = { "none", "perfect", "static" , "dynamic"};
 
-void ppressed(void)
-{
+void ppressed(void) {
     /* This function is called when the user presses the 'p' key at
        the mydlx> prompt.  It prints the current CPU configuration.
        As simulated configurations increase in complexity, it should
        be extended to output all relevant CPU parameters.  */
 
-       printf("--Basic pipeline configuration--\n");
-       printf("      UNIT     LATENCY\n");
-       printf("  Integer unit:  %2d\n", latency[INT_UNIT]);
-       printf("  Load unit:     %2d\n", latency[LOAD_UNIT]);
-       printf("  FP adder:      %2d\n", latency[ADD_UNIT]);
-       printf("     multiplier: %2d\n", latency[MUL_UNIT]);
-       printf("     divider:    %2d\n", latency[DIV_UNIT]);
+    printf("--Basic pipeline configuration--\n");
+    printf("      UNIT     LATENCY\n");
+    printf("  Integer unit:  %2d\n", latency[INT_UNIT]);
+    printf("  Load unit:     %2d\n", latency[LOAD_UNIT]);
+    printf("  FP adder:      %2d\n", latency[ADD_UNIT]);
+    printf("     multiplier: %2d\n", latency[MUL_UNIT]);
+    printf("     divider:    %2d\n", latency[DIV_UNIT]);
 
-       printf("Branch predictor: %s\n", bpredtypename[bpType]);
-       if (bpType == DYNAMICBP) {
-          printf("   BTB, with (%d,2) correlating\n", historyBits);
-          printf("   BTB size:      %6d entries\n", btbSize);
-      }
-  }
+    printf("Branch predictor: %s\n", bpredtypename[bpType]);
+    if (bpType == DYNAMICBP) {
+        printf("   BTB, with (%d,2) correlating\n", historyBits);
+        printf("   BTB size:      %6d entries\n", btbSize);
+    }
+}
 
-  void fatalerrormsg(void)
-  {
+void fatalerrormsg(void) {
     /* This function is called when any sort of run-time error is
        detected and execution is terminated.  It simply prints out the
        cycle count (maintained only in stall.c code) to help the user
        determine what happened and when.  */
-       fprintf(stderr,"Current cycle: %lu\n",totalcycles);
-   }
+    fprintf(stderr,"Current cycle: %lu\n",totalcycles);
+}
 
-   void zpressed(void)
-   {
+void zpressed(void) {
     /* This function is called when the user presses the 'z' key at
        the prompt.  It will be used in a later lab to dump branch
        prediction info and can be ignored until then.  It can be used
        in the meantime to print anything you want (for debugging
        purposes) whenever 'z' is pressed. */
 
+    int i, j, count;
 
-        int i, j, count;
-
-        if (bpType != DYNAMICBP) {
-          printf("No dynamic branch predictor state\n");
-          return;
-      }
-
-  }
+    if (bpType != DYNAMICBP) {
+        printf("No dynamic branch predictor state\n");
+        return;
+    }
+}
