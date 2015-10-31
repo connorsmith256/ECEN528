@@ -1,0 +1,6 @@
+types of locality
+	- spatial: arrays
+	- temporal: loops
+	- code tends to be clustered: compute value, use it soon
+caches
+	- larger address space = more power/access

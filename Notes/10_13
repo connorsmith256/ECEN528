@@ -1,0 +1,23 @@
+history register
+	- keep results of previous branchs
+	- usually implemented in shift register
+	- value from register combined with address in "mysterious" way
+	- result used as index into pattern history table
+	- most common mysterious way: gselect
+		- use address as row, history as column to index into table
+- branch history shift register table (BHSRT)
+	- use address as index to get out history register, then concat as before
+
+prediction = f(PHT[e(address, BHSRT[H(address)])])
+
+f:
+e: gselect, gshare, etc.
+
+XAx
+	- first X: BHSRT
+	- A: adaptive
+	- second x: PHT
+
+	- G/g: global
+	- P/p: per-address
+	- S/s: set-aliased

@@ -1,0 +1,9 @@
+pipelining yes, no branch prediction
+4 questions, multiple parts
+caches
+pipelines
+	kinds of dependences
+	kinds of hazards
+	3 rules for hazards
+Amdahl's law
+basic performance equations

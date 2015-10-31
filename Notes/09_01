@@ -1,0 +1,37 @@
+Things to worry about if you're designing a new computer
+	- power
+	- performance
+	- size/space
+	- cost
+	- architecture (ISA)
+	- peripherals (buses)
+	- target applications/audience
+	- memory speed
+	- in-house development vs. outsourcing
+	- process/technology
+	- development tools
+	- distinguishing features
+	- user-friendliness
+	- security
+	- timeline
+	- regulatory environment
+	- standards
+	- aesthetics
+	- heat
+	- reliability
+	- ESD
+	- testability
+Computer Architecture
+	- ISA: what is visible to a programmer
+	- micro-architecture: how is the computer organized?
+	- hardware components: the real world gets in the way
+Key constraints
+	- power
+	- speed
+	- not size and price: "silicon is essentially free"
+Three components of focus
+	1. parallelism
+	2. locality: temporal and spatial, value, etc.
+	3. focus on the common case
+Trends
+	- Moore's law: the number of transistors (at minimum cost/transistor) doubles every 18-24 months

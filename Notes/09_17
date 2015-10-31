@@ -1,0 +1,43 @@
+perfect cache
+	- never misses
+	- latency of 1
+penalty time
+	- the additional time beyond 1 cycle
+average memory access time
+	- AMAT = hit latency + missrate*penalty
+CPI_processor = CPI_perfect$ + (memory access/instruction)*(AMAT - 1)
+	- only works for in-order processors that stall on a miss
+	- in-order processors don't usually stall on a miss! they stall when you try to use the data
+
+ex.	CPI_perfect = 1
+	20% of instructions are ld/st
+	overall (I+D) miss rate = 10%
+	miss penalty = 50 cycles
+	hit latency = 1 cycle
+	CPI = ?
+
+	AMAT = 1 + 50*0.1 = 6
+	CPI = 1 + (1 + 0.2)*(6 - 1)
+		= 7 cycles
+
+ex. same as before, except:
+	I_miss = 4%
+	D_miss = 15%
+
+	AMAT_I = 1 + 50*0.04 = 3
+	AMAT_D = 1 + 50*0.15 = 8.5
+	CPI = 1 + 1*(3 - 1) + 0.2*(8.5 - 1)
+		= 4.5 cycles
+
+types of misses
+	- compulsory (cold miss): first access is always a miss
+	- conflict: data was loaded, but thrown out by more recently used data
+		-  by definition, cannot happen in fully associative caches
+	- capacity: no matter what, there wasn't enough space to hold this data
+
+tradeoffs
+	- increase cache size
+		- (+) reduces capacity misses
+		- (+/-) could increase/decrease conflict misses, depending on access pattern
+		- (-) increases hit time
+	- increase associativity

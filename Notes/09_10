@@ -1,0 +1,17 @@
+- In the 70s, instruction sets got much more complicated
+	- attempt to fix "semantic gap" between hardware and software
+	- made it much harder to design hardware, but doable
+	- compilers got better and achieved better results by generating simple results instead of the complex instructions
+	- SIMD instructions were a marketing gimmick
+		- compilers don't generate them (Intel's compiler will)
+		- requires the same work as automatic parallelization
+- condition codes vs condition registers
+	- condition codes give you the result for free, but are *very* hairy for pipelining/OOE
+	- using a register is easier on compilers but takes up space
+	- we're stuck with condition codes because so many ISes use them
+- why not allow 2 memory operands?
+	- mirror page faults: try to bring in #1, fault, try to bring in #2, fault and kick out #1
+- ISA controls memory organization
+	- alignment
+	- size of accesses, addressing modes
+	- endianness

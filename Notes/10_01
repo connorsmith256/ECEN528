@@ -1,0 +1,10 @@
+getting around hazards
+	1) stall (stick a noop for the bubbles)
+		- pipeline interlock (O(p), p = #pipeline stages)
+	2) punt to the compiler
+		- not general use; requires knowledge of pipeline
+		- used sometimes in embedded system
+	3) do something clever
+		- structural hazards: add more hardware
+		- forwarding/bypassing
+			- doesn't always work! if latency is more than 1 cycle (load/use penalty)

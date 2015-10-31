@@ -1,0 +1,16 @@
+Simulation vs hardware:
+	- cost
+		- simulation is cheap!
+		- hardware is ungodly expensive
+	- accuracy
+		- Are inputs realistic?
+		- Are effects of OS included?
+	- execution speed: simulation is slooooooowwww
+	- development time
+		- neither are quick
+Simulation trade-offs (pick one):
+	- speed
+	- accuracy
+		- level of abstraction
+		- correctness
+	- development time

@@ -1,0 +1,26 @@
+- why virtual memory?
+	- pretend you have more space than you actually have
+- can instruct OS not to page out specific pages
+- VM uses a combination of hardware and software
+- pages vs segments
+	- pages are fixed size
+	- segments are variable size; historically used
+- page table size
+	- 64-bit VA, 4KB page size, 8B PT entry size
+		- size = 2^64/2^12*8 = 2^52 = 4PB size!
+	- use a hash table (inverted page table)
+		- 4GB mem -> 2^32/2^12*8 = 2^23 = 8MB size!
+	- use a trie: multi-level page tables
+- TLB
+	- highly associative (often fully associative)
+		- prevents conflict misses
+		- capacity misses aren't as big of a deal: block size ~4KB
+- managing addresses and caches
+	1. virtually indexed, virtually tagged (VIVT)
+		- have to flush the cache
+	2. physically indexed, physically tagged (PIPT)
+		-
+	3. virtually indexed, physically tagged (VIPT)
+		- page size must be greater than capacity of set
+	4. physically indexed, virtually tagged (PIVT)
+		- horrible idea, don't do

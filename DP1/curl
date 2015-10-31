@@ -1,0 +1,9 @@
+cache_size=262144 &&
+line_size=64 &&
+assoc=8 &&
+response=$(curl --data "cache_size=$cache_size&line_size=$line_size&assoc=$assoc&nrbanks=1&technode=32&action=submit&cacti=cache&simple=simple_cache&preview-article=Submit" http://quid.hpl.hp.com:9081/cacti/index.y) &&
+echo $response | grep -Io "Access time (ns): [0-9.]\+" | sed -nre 's/.*:(.*)/\1/p' &&
+echo $response | grep -Io "Total read dynamic energy per read port(nJ): [0-9.]\+" | sed -nre 's/.*:(.*)/\1/p' &&
+echo $response | grep -Io "Total read dynamic power per read port at max freq (W): [0-9.]\+" | sed -nre 's/.*:(.*)/\1/p' &&
+echo $response | grep -Io "Total standby leakage power per bank (W): [0-9.]\+" | sed -nre 's/.*:(.*)/\1/p' &&
+echo $response | grep -Io "Total area (mm^2): [0-9.]\+" | sed -nre 's/.*:(.*)/\1/p'

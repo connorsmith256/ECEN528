@@ -1,0 +1,13 @@
+branch penalty
+	- depends on where data is coming from
+way of punting to the compiler to avoid stalls on branches
+	- do other work in between (only works for conditional branches)
+	- insert no-ops
+	- 1) predication to remove branches
+	- 2) branch delays slots
+	- 3) clever stuff
+		- guess (branch prediction), fix if wrong
+
+branch prediction
+	- simplest: assume always taken (only works with conditional branches)
+		- not a big win with a penalty of 1, since there's still the penalty of 1

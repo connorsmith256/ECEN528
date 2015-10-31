@@ -1,0 +1,16 @@
+AMAT = hit time + miss rate * miss penalty
+reducing miss penalty
+	- multi level caches
+	- reorder: do reads before writes
+	- critical word first/early restart
+	- non-blocking caches
+		- overlap accesses
+		- "memory-level parallelism"
+	- merging write buffers
+reducing miss rate
+	- increasing block size
+		- exploit spatial locality
+	- higher associativity
+		- reduces conflict misses
+	- make it bigger
+		- reduces capacity misses

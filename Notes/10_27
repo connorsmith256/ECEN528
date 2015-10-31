@@ -1,0 +1,39 @@
+4 problems with OoO execution
+	- RAW hazards
+	- WAR hazards
+	- WAW hazards
+	- exceptions/branch mis-predictions
+
+Things to do in ID stage
+	- decoding the instruction
+	- read operand values
+	- send the instruction to a functional unit: "issue"
+
+Very important: fetch and decode still remain in order
+
+Terminology:
+	- architectural register file: "classic" register file
+
+Concerns
+	- issuing when source operands are actually available
+
+Instructions waiting to issue go in a buffer
+	- reservation station
+		- one RS for each functional unit
+		- tend to be smaller, faster, less energy
+	- instruction window
+		- more efficient, since each FU can go anywhere
+
+Early read
+	- read register file at dispatch
+	- slightly better performing, but larger reservation stations
+Late read
+	- no copies of values needed
+	- have to stall, but can be stalled at write-back instead of execute
+
+Tomasulo scheme stores values in reservation stations (= early read?)
+
+How we deal with WAW
+	- don't dispatch at all (late read?)
+	- squash the write-back to the arch. reg. file if we aren't the youngest writer
+	- for early read, only need to squash write-back

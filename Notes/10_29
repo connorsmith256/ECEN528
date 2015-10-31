@@ -1,0 +1,20 @@
+Dealing with speculation (being precise)
+	- branch misprediction (must be precise)
+	- exceptions
+
+"Undo"
+	- need a way to restore state before an instruction executes: committed state
+
+Reorder buffer
+	- FIFO
+	- put in at dispatch stage
+	- pull out at new stage: commit stage
+
+Schemes
+	1)
+	2)
+	3) read from ROB
+	4) physical register file
+
+How do computers work?
+	- just guess

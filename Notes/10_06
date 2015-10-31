@@ -1,0 +1,5 @@
+hazards
+	- RAW:
+		- forwarding/bypassing:
+			1) keep track of register fields and pass to control unit
+			2) bank of shift registers (1 for each register number): "scoreboard"
