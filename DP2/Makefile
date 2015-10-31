@@ -16,19 +16,19 @@ TARGET    = bin/mydlx
 OBJ       = bin/mem.o bin/clib.o bin/dlx.o bin/stall.o
 
 $(TARGET): $(OBJ)
-		$(CC) $(CFLAGS1) $(OBJ) -o $(TARGET) -lm
+		@$(CC) $(CFLAGS1) $(OBJ) -o $(TARGET) -lm
 
 bin/mem.o: src/mem.c src/mem.h
-		$(CC) $(CFLAGS1) -c src/mem.c -o bin/mem.o
+		@$(CC) $(CFLAGS1) -c src/mem.c -o bin/mem.o
 
 bin/dlx.o: src/dlx.c src/dlx.h src/mem.h src/ops.h src/dlxdef.h src/stalldef.h
-		$(CC) $(CFLAGS1) -c src/dlx.c -o bin/dlx.o
+		@$(CC) $(CFLAGS1) -c src/dlx.c -o bin/dlx.o
 
 bin/clib.o: src/clib.c src/mem.h src/dlx.h
-		$(CC) $(CFLAGS1) -c src/clib.c -o bin/clib.o
+		@$(CC) $(CFLAGS1) -c src/clib.c -o bin/clib.o
 
 bin/stall.o: src/stall.c src/stalldef.h
-		$(CC) $(CFLAGS1) -c src/stall.c -o bin/stall.o
+		@$(CC) $(CFLAGS1) -c src/stall.c -o bin/stall.o
 
 clean:
-		rm bin/*.o $(TARGET)
+		@rm bin/*.o $(TARGET)
