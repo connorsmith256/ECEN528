@@ -212,7 +212,33 @@ void clearstall(void)
  }
 
 int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
-    return 3;
+    int opCode = ir >> (32 - 6);                        // opCode = high 26 bits
+    int numStalls, backward, correct;
+
+    switch(opCode) {
+    case 0x05:                                          // BEQZ
+    case 0x06:                                          // BFPF
+    case 0x07:                                          // BFPT
+    case 0x08:                                          // BNEZ
+        backward = newpc < pc;
+        correct = (backward && branch_flag == BRANCHTAKEN) ||
+                 (!backward && branch_flag == BRANCHNOTTAKEN);
+        numStalls = correct ? 0: 3;
+        break;
+    case 0x09:                                          // J
+    case 0x0A:                                          // JAL
+        numStalls = 0;
+        break;
+    case 0x0B:                                          // JALR
+    case 0x0C:                                          // JR
+        numStalls = 3;
+        break;
+    default:                                            // Not a branch
+        printf("ERROR: Trying to handle a static branch when opCode = %d", opCode);
+        numStalls = -1;
+    }
+
+    return numStalls;
 }
 
 int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
