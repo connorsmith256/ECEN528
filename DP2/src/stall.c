@@ -211,15 +211,33 @@ void clearstall(void)
 
  }
 
- int handle_branch(int branch_flag,
+int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
+    return 3;
+}
+
+int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
+    return 3;
+}
+
+int handle_branch(int branch_flag,
         int pc, /* PC of instruction */
         unsigned long ir, /* The instruction's encoding */
         int newpc /* actual target of branch */) {
 
-  /*
-   * TODO: FILL IN
-   */
-   return 0;
+    if (branch_flag == NOTABRANCH) {
+        return 0;
+    }
+
+    switch (bpType) {
+    case NOBP:
+        return 2;
+    case PERFECTBP:
+        return 0;
+    case STATICBP:
+        return handle_static(branch_flag, pc, ir, newpc);
+    case DYNAMICBP:
+        return handle_dynamic(branch_flag, pc, ir, newpc);
+    }
 }
 
 void addstalls(int s1type, int src1, int s2type, int src2, int
