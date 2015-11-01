@@ -79,6 +79,15 @@ unsigned long FPSwriter;        /* FP status bit */
 /*
  * TODO: DEFINE BRANCH PREDICTOR DATA STRUCTURES HERE
  */
+#define MAX_HISTORY_BITS 4
+unsigned char globalHistoryRegister;
+typedef struct BTBEntry {
+     unsigned int pc;
+     unsigned int valid;
+     unsigned int targetPc;
+     unsigned char PHTs[16];
+} BTBEntry;
+BTBEntry* BTBTable;
 
 /****** global variables defined here for statistics of interest ***********/
 
@@ -208,7 +217,18 @@ void clearstall(void)
     /*
      * TODO: ALLOCATE BRANCH PREDICTOR DATA STRUCTURES HERE
      */
+     globalHistoryRegister = (0xF << (MAX_HISTORY_BITS-historyBits));
 
+     BTBTable = malloc(btbSize * sizeof(BTBEntry));
+     for (i = 0; i < btbSize; i++) {
+        BTBTable[i].pc = -1;
+        BTBTable[i].valid = 0;
+        BTBTable[i].targetPc = -1;
+        int j;
+        for (j = 0; j < historyBits; j++) {
+            BTBTable[i].PHTs[j] = -1;
+        }
+     }
  }
 
 int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
