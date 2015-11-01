@@ -212,18 +212,22 @@ void clearstall(void)
  }
 
 int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
-    int opCode = ir >> (32 - 6);                        // opCode = high 26 bits
-    int numStalls, backward, correct;
+    int opCode = ir >> 26;                              // opCode = high 6 bits
+    int offset_msb = (ir & (0x01 << 15)) >> 15;         // offset = low 16 bits
+    int numStalls = 0;
+    int backward, taken;
 
     switch(opCode) {
     case 0x05:                                          // BEQZ
     case 0x06:                                          // BFPF
     case 0x07:                                          // BFPT
     case 0x08:                                          // BNEZ
-        backward = newpc < pc;
-        correct = (backward && branch_flag == BRANCHTAKEN) ||
-                 (!backward && branch_flag == BRANCHNOTTAKEN);
-        numStalls = correct ? 0: 3;
+        backward = (offset_msb == 1);                   // backward for negative offsets
+        taken = (branch_flag == BRANCHTAKEN);
+        if (backward != taken) {
+            numStalls = 3;
+            countMP[1]++;
+        }
         break;
     case 0x09:                                          // J
     case 0x0A:                                          // JAL
@@ -238,6 +242,9 @@ int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
         numStalls = -1;
     }
 
+    if (numStalls) {
+        totalMP++;
+    }
     return numStalls;
 }
 
