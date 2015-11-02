@@ -225,8 +225,8 @@ void clearstall(void)
         BTBTable[i].valid = 0;
         BTBTable[i].targetPc = -1;
         int j;
-        for (j = 0; j < historyBits; j++) {
-            BTBTable[i].PHTs[j] = -1;
+        for (j = 0; j < 16; j++) {
+            BTBTable[i].PHTs[j] = ST4;
         }
      }
  }
@@ -283,8 +283,8 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         entry->valid = 1;
         entry->pc = pc;
         entry->targetPc = newpc;
-        for (i = 0; i < historyBits; i++) {
-            entry->PHTs[i] = actuallyTaken ? ST4 : ST1;
+        for (i = 0; i < 16; i++) {
+            entry->PHTs[i] = actuallyTaken ? ST1 : ST4;
         }
         countMP[0]++;
         if (actuallyTaken) {
