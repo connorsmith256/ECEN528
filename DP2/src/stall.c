@@ -276,27 +276,30 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
     int index = (pc >> 2) & (0xFFFFFFFF >> (32 - numIndexBits));
     int i;
 
-    BTBEntry entry = BTBTable[index];
-    if (entry.valid == 0 || entry.pc != pc) {               // BTB miss
+
+    BTBEntry* entry = &BTBTable[index];
+    if (entry->valid == 0 || entry->pc != pc) {               // BTB miss
+        // printf("BTB miss\n");
         predictTaken = 0;
-        entry.valid = 1;
-        entry.pc = pc;
-        entry.targetPc = newpc;
+        entry->valid = 1;
+        entry->pc = pc;
+        entry->targetPc = newpc;
         for (i = 0; i < historyBits; i++) {
-            entry.PHTs[i] = actuallyTaken ? ST4 : ST1;
+            entry->PHTs[i] = actuallyTaken ? ST4 : ST1;
         }
         numStalls = 3;
         countMP[0]++;
     }
-    else if (entry.pc == pc) {                              // BTB hit
-        int state = entry.PHTs[(int)globalHistoryRegister];
+    else if (entry->pc == pc) {                              // BTB hit
+        printf("BTB hit\n");
+        int state = entry->PHTs[(int)globalHistoryRegister];
         predictTaken = (state <= 1);                        // 0 or 1 is taken
         if (predictTaken != actuallyTaken) {                // hit, wrong outcome
             countMP[1]++;
             numStalls = 3;
         }
-        if (predictTaken && entry.targetPc != newpc) {      // hit, wrong address
-            entry.targetPc = newpc;
+        if (predictTaken && entry->targetPc != newpc) {      // hit, wrong address
+            entry->targetPc = newpc;
             countMP[2]++;
             numStalls = 3;
         }
@@ -310,7 +313,7 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
     }
 
     // update PHT
-    unsigned char* PHT = &entry.PHTs[(int)globalHistoryRegister];
+    unsigned char* PHT = &entry->PHTs[(int)globalHistoryRegister];
     switch(*PHT) {
     case ST1:                                               // ST
         *PHT = (actuallyTaken) ? ST1 : ST2;
