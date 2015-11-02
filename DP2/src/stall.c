@@ -309,13 +309,6 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         }
     }
 
-    // update globalHistoryRegister
-    globalHistoryRegister = globalHistoryRegister << 1;     // shift left one
-    if (actuallyTaken == GHNOTTAKEN) {                      // append new history
-        unsigned char newHistoryBit = 1 << (MAX_HISTORY_BITS - historyBits);
-        globalHistoryRegister |= newHistoryBit;             // append new history
-    }
-
     // update PHT
     unsigned char* PHT = &entry->PHTs[(int)globalHistoryRegister];
     switch(*PHT) {
@@ -332,6 +325,11 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         *PHT = (actuallyTaken) ? ST3 : ST4;
         break;
     }
+
+    // update globalHistoryRegister
+    globalHistoryRegister = globalHistoryRegister << 1;     // shift left one
+    globalHistoryRegister |= (actuallyTaken) ? 0 : 1;       // append new bit
+    globalHistoryRegister &= (0xF >> (MAX_HISTORY_BITS - historyBits)); // clear upper bits
 
     return numStalls;
 }
