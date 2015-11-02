@@ -217,7 +217,7 @@ void clearstall(void)
     /*
      * TODO: ALLOCATE BRANCH PREDICTOR DATA STRUCTURES HERE
      */
-     globalHistoryRegister = (0xF << (MAX_HISTORY_BITS-historyBits));
+     globalHistoryRegister = (0xF >> (MAX_HISTORY_BITS-historyBits));
 
      BTBTable = malloc(btbSize * sizeof(BTBEntry));
      for (i = 0; i < btbSize; i++) {
