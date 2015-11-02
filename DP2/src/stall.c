@@ -295,6 +295,9 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         int state = entry->PHTs[(int)globalHistoryRegister];
         predictTaken = (state <= 1);                        // 0 or 1 is taken
         if (predictTaken != actuallyTaken) {                // hit, wrong outcome
+            if (actuallyTaken) {
+                entry->targetPc = newpc;
+            }
             numStalls = 3;
             countMP[1]++;
             totalMP++;
