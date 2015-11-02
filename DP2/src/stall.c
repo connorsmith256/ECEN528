@@ -273,7 +273,7 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
     int predictTaken = 0;
     int actuallyTaken = (branch_flag == BRANCHTAKEN);
     int numIndexBits = mylog2(btbSize);
-    int index = (pc >> 2) & (0xFFFFFFFF >> (32 - numIndexBits));
+    int index = (pc >> 2) & (0x3FFFFFFF >> (30 - numIndexBits));
     int i;
 
     BTBEntry* entry = &BTBTable[index];
@@ -286,23 +286,26 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         for (i = 0; i < historyBits; i++) {
             entry->PHTs[i] = actuallyTaken ? ST4 : ST1;
         }
-        numStalls = 3;
         countMP[0]++;
+        if (actuallyTaken) {
+            totalMP++;
+            numStalls = 3;
+        }
     }
     else if (entry->pc == pc) {                              // BTB hit
         // printf("BTB hit\n");
         int state = entry->PHTs[(int)globalHistoryRegister];
         predictTaken = (state <= 1);                        // 0 or 1 is taken
         if (predictTaken != actuallyTaken) {                // hit, wrong outcome
+            numStalls = 3;
             countMP[1]++;
             totalMP++;
-            numStalls = 3;
         }
         else if (predictTaken && entry->targetPc != newpc) {      // hit, wrong address
             entry->targetPc = newpc;
+            numStalls = 3;
             countMP[2]++;
             totalMP++;
-            numStalls = 3;
         }
     }
 
