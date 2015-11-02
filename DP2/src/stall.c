@@ -269,7 +269,64 @@ int handle_static(int branch_flag, int pc, unsigned long ir, int newpc) {
 }
 
 int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
-    return 3;
+    int numStalls = 0;
+    int predictTaken = 0;
+    int actuallyTaken = (branch_flag == BRANCHTAKEN);
+    int numIndexBits = mylog2(btbSize);
+    int index = (pc >> 2) & (0xFFFFFFFF >> (32 - numIndexBits));
+    int i;
+
+    BTBEntry entry = BTBTable[index];
+    if (entry.valid == 0 || entry.pc != pc) {               // BTB miss
+        predictTaken = 0;
+        entry.valid = 1;
+        entry.pc = pc;
+        entry.targetPc = newpc;
+        for (i = 0; i < historyBits; i++) {
+            entry.PHTs[i] = actuallyTaken ? ST4 : ST1;
+        }
+        numStalls = 3;
+        countMP[0]++;
+    }
+    else if (entry.pc == pc) {                              // BTB hit
+        int state = entry.PHTs[(int)globalHistoryRegister];
+        predictTaken = (state <= 1);                        // 0 or 1 is taken
+        if (predictTaken != actuallyTaken) {                // hit, wrong outcome
+            countMP[1]++;
+            numStalls = 3;
+        }
+        if (predictTaken && entry.targetPc != newpc) {      // hit, wrong address
+            entry.targetPc = newpc;
+            countMP[2]++;
+            numStalls = 3;
+        }
+    }
+
+    // update globalHistoryRegister
+    globalHistoryRegister = globalHistoryRegister << 1;     // shift left one
+    if (actuallyTaken == GHNOTTAKEN) {                      // append new history
+        unsigned char newHistoryBit = 1 << (MAX_HISTORY_BITS - historyBits);
+        globalHistoryRegister |= newHistoryBit;             // append new history
+    }
+
+    // update PHT
+    unsigned char* PHT = &entry.PHTs[(int)globalHistoryRegister];
+    switch(*PHT) {
+    case ST1:                                               // ST
+        *PHT = (actuallyTaken) ? ST1 : ST2;
+        break;
+    case ST2:                                               // WT
+        *PHT = (actuallyTaken) ? ST1 : ST4;
+        break;
+    case ST3:                                               // WNT
+        *PHT = (actuallyTaken) ? ST1 : ST4;
+        break;
+    case ST4:                                               // SNT
+        *PHT = (actuallyTaken) ? ST3 : ST4;
+        break;
+    }
+
+    return numStalls;
 }
 
 int handle_branch(int branch_flag,
