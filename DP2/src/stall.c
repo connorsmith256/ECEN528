@@ -278,7 +278,6 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
 
     BTBEntry* entry = &BTBTable[index];
     if (entry->valid == 0 || entry->pc != pc) {               // BTB miss
-        // printf("BTB miss\n");
         predictTaken = 0;
         entry->valid = 1;
         entry->pc = pc;
@@ -293,7 +292,6 @@ int handle_dynamic(int branch_flag, int pc, unsigned long ir, int newpc) {
         }
     }
     else if (entry->pc == pc) {                              // BTB hit
-        // printf("BTB hit\n");
         int state = entry->PHTs[(int)globalHistoryRegister];
         predictTaken = (state <= 1);                        // 0 or 1 is taken
         if (predictTaken != actuallyTaken) {                // hit, wrong outcome
