@@ -1,0 +1,7 @@
+address	size	label
+40	4	BOTTOM
+16	4	BRANCH1
+24	4	BRANCH2
+32	4	BRANCH3
+16	4	TOP
+0	4	main

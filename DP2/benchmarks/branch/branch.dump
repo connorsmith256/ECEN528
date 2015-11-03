@@ -1,0 +1,35 @@
+
+<<<<<<<<< ASCII dump of dlx binary file branch.dlx>>>>>>>>>>
+Magic number: 1113150753 (0x42595521) [`BYU!']
+Address of main: 0x0
+Register initializers:
+  r0: 0x0        r1: 0x0        r2: 0x0        r3: 0x0      
+  r4: 0x0        r5: 0x0        r6: 0x0        r7: 0x0      
+  r8: 0x0        r9: 0x0        r10: 0x0       r11: 0x0     
+  r12: 0x0       r13: 0x0       r14: 0x0       r15: 0x0     
+  r16: 0x0       r17: 0x0       r18: 0x0       r19: 0x0     
+  r20: 0x0       r21: 0x0       r22: 0x0       r23: 0x0     
+  r24: 0x0       r25: 0x0       r26: 0x0       r27: 0x0     
+  r28: 0x0       r29: 0x7fff0000  r30: 0x0       r31: 0x0     
+Code segment length: 76 bytes
+Code segment starting address: 0 (0x0)
+Address  Instruction                        labels      hex    chars
+     0:  add r2,r0,r0                         main  0x    1001 "...."
+     4:  add r3,r0,r0                               0x    1801 "...."
+     8:  add r4,r0,r0                               0x    2001 "...."
+     c:  add r5,r0,r0                               0x    2801 "..(."
+    10:  beqz r3,+4 [EA=0x18]          BRANCH1,TOP  0x14600004 ".`.."
+    14:  nop                                        0x       0 "...."
+    18:  beqz r4,+4 [EA=0x20]              BRANCH2  0x14800004 "...."
+    1c:  nop                                        0x       0 "...."
+    20:  beqz r5,+4 [EA=0x28]              BRANCH3  0x14a00004 "...."
+    24:  nop                                        0x       0 "...."
+    28:  addi r2,r2,#1 [0x1]                BOTTOM  0x 8420001 ".B.."
+    2c:  andi r3,r2,#1 [0x1]                        0x10430001 ".C.."
+    30:  andi r4,r2,#2 [0x2]                        0x10440002 ".D.."
+    34:  andi r5,r2,#8 [0x8]                        0x10450008 ".E.."
+    38:  andi r6,r2,#32 [0x20]                      0x10460020 ".F.."
+    3c:  beqz r6,-48 [EA=0x10]                      0x14c0ffd0 "...."
+    40:  nop                                        0x       0 "...."
+    44:  trap #0                                    0xac000000 "...."
+    48:  nop                                        0x       0 "...."

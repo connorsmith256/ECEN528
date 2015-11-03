@@ -1,0 +1,194 @@
+From nathanila@hotmail.com Thu May 31 15:50:57 2001
+MIME-Version: 1.0
+X-Originating-IP: [128.187.99.9]
+From: "Nathan and Ila Reynolds" <nathanila@hotmail.com>
+To: <jka@ee.byu.edu>
+Subject: Branch Benchmark
+Date: Sat, 10 Mar 2001 10:34:00 -0700
+Content-Type: multipart/mixed;	boundary="----=_NextPart_000_0013_01C0A94D.9EA715A0"
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-MimeOLE: Produced By Microsoft MimeOLE V5.50.4522.1200
+X-OriginalArrivalTime: 10 Mar 2001 18:49:11.0811 (UTC) FILETIME=[CBEEAD30:01C0A992]
+X-UIDL: ['D"!Ym,!!<:E"!YO9!!
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_0014_01C0A94D.9EA715A0"
+
+
+------=_NextPart_001_0014_01C0A94D.9EA715A0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Dr. Archibald,
+
+Here's is a simple benchmark that tests all of the (2,2) branch =
+predictor states.
+
+Explaination:
+
+As the loop runs the first two branches are used to set the global =
+history bits to a particular state.  The third branch is the actual =
+branch being tested.  The loop forces each of the 4 state machines to =
+cycle through all of their states.  This should quickly show where =
+problems lie in any branch predictor.
+
+Nathan Reynolds
+
+------=_NextPart_001_0014_01C0A94D.9EA715A0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 5.50.4611.1300" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Dr. Archibald,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Here's is a simple benchmark that tests =
+all of=20
+the&nbsp;(2,2) branch predictor states.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Explaination:</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>As the loop runs the first two branches =
+are used to=20
+set the global history bits to a particular state.&nbsp; The third =
+branch is the=20
+actual branch being tested.&nbsp; The loop forces each of the 4 state =
+machines=20
+to cycle through all of their states.&nbsp; This should quickly show =
+where=20
+problems lie in any branch predictor.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Nathan =
+Reynolds</FONT></DIV></BODY></HTML>
+
+------=_NextPart_001_0014_01C0A94D.9EA715A0--
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0
+Content-Type: application/octet-stream;
+	name="branch.sym"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="branch.sym"
+
+address	size	label=0A=
+40	4	BOTTOM=0A=
+16	4	BRANCH1=0A=
+24	4	BRANCH2=0A=
+32	4	BRANCH3=0A=
+16	4	TOP=0A=
+0	4	main=0A=
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0
+Content-Type: application/octet-stream;
+	name="branch.dump"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="branch.dump"
+
+=0A=
+<<<<<<<<< ASCII dump of dlx binary file branch.dlx>>>>>>>>>>=0A=
+Magic number: 1113150753 (0x42595521) [`BYU!']=0A=
+Address of main: 0x0=0A=
+Register initializers:=0A=
+  r0: 0x0        r1: 0x0        r2: 0x0        r3: 0x0      =0A=
+  r4: 0x0        r5: 0x0        r6: 0x0        r7: 0x0      =0A=
+  r8: 0x0        r9: 0x0        r10: 0x0       r11: 0x0     =0A=
+  r12: 0x0       r13: 0x0       r14: 0x0       r15: 0x0     =0A=
+  r16: 0x0       r17: 0x0       r18: 0x0       r19: 0x0     =0A=
+  r20: 0x0       r21: 0x0       r22: 0x0       r23: 0x0     =0A=
+  r24: 0x0       r25: 0x0       r26: 0x0       r27: 0x0     =0A=
+  r28: 0x0       r29: 0x7fff0000  r30: 0x0       r31: 0x0     =0A=
+Code segment length: 76 bytes=0A=
+Code segment starting address: 0 (0x0)=0A=
+Address  Instruction                        labels      hex    chars=0A=
+     0:  add r2,r0,r0                         main  0x    1001 "...."=0A=
+     4:  add r3,r0,r0                               0x    1801 "...."=0A=
+     8:  add r4,r0,r0                               0x    2001 "...."=0A=
+     c:  add r5,r0,r0                               0x    2801 "..(."=0A=
+    10:  beqz r3,+4 [EA=3D0x18]          BRANCH1,TOP  0x14600004 ".`.."=0A=
+    14:  nop                                        0x       0 "...."=0A=
+    18:  beqz r4,+4 [EA=3D0x20]              BRANCH2  0x14800004 "...."=0A=
+    1c:  nop                                        0x       0 "...."=0A=
+    20:  beqz r5,+4 [EA=3D0x28]              BRANCH3  0x14a00004 "...."=0A=
+    24:  nop                                        0x       0 "...."=0A=
+    28:  addi r2,r2,#1 [0x1]                BOTTOM  0x 8420001 ".B.."=0A=
+    2c:  andi r3,r2,#1 [0x1]                        0x10430001 ".C.."=0A=
+    30:  andi r4,r2,#2 [0x2]                        0x10440002 ".D.."=0A=
+    34:  andi r5,r2,#8 [0x8]                        0x10450008 ".E.."=0A=
+    38:  andi r6,r2,#32 [0x20]                      0x10460020 ".F.."=0A=
+    3c:  beqz r6,-48 [EA=3D0x10]                      0x14c0ffd0 "...."=0A=
+    40:  nop                                        0x       0 "...."=0A=
+    44:  trap #0                                    0xac000000 "...."=0A=
+    48:  nop                                        0x       0 "...."=0A=
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0
+Content-Type: application/octet-stream;
+	name="branch.s"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="branch.s"
+
+.align 2=0A=
+.globl main=0A=
+main:=0A=
+    ; r2 iterator=0A=
+    ; r3 branch1=0A=
+    ; r4 branch2=0A=
+    ; r5 branch3=0A=
+    ; r6 compare=0A=
+=0A=
+    add r2, r0, r0=0A=
+    add r3, r0, r0=0A=
+    add r4, r0, r0=0A=
+    add r5, r0, r0=0A=
+=0A=
+TOP:=0A=
+BRANCH1:=0A=
+    beqz r3, BRANCH2=0A=
+    nop=0A=
+BRANCH2:=0A=
+    beqz r4, BRANCH3=0A=
+    nop=0A=
+BRANCH3:=0A=
+    beqz r5, BOTTOM        ; The branch to test.=0A=
+    nop=0A=
+BOTTOM:=0A=
+    addi r2, r2, #1=0A=
+    andi r3, r2, #1=0A=
+    andi r4, r2, #2=0A=
+    andi r5, r2, #8=0A=
+    andi r6, r2, #32=0A=
+    beqz r6, TOP=0A=
+    nop=0A=
+=0A=
+    trap #0=0A=
+    nop=0A=
+	.end main=0A=
+=0A=
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0
+Content-Type: application/octet-stream;
+	name="branch.dlx"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="branch.dlx"
+
+QllVIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAH//AAAAAAAAAAAAAAAAAEwAAAAAAAAQAQAAGAEAACABAAAoARRgAAQAAAAAFIAA
+BAAAAAAUoAAEAAAAAAhCAAEQQwABEEQAAhBFAAgQRgAgFMD/0AAAAACsAAAAAAAAAA==
+
+------=_NextPart_000_0013_01C0A94D.9EA715A0--
+
