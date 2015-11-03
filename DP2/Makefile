@@ -12,7 +12,7 @@ HPUXCC    = cc
 # The target name below should be changed for each version
 # of the gold standard or distribution code.
 
-TARGET    = bin/mydlx
+TARGET    = mydlx
 OBJ       = bin/mem.o bin/clib.o bin/dlx.o bin/stall.o
 
 $(TARGET): $(OBJ)
