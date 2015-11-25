@@ -1,0 +1,18 @@
+#!/bin/bash
+
+config=$1
+metric=$2
+
+results_dir="../results"
+output_file=$results_dir/$config/$(echo $metric | tr -d '[[:space:]]').out
+if [ -f $output_file ]; then
+  rm $output_file
+fi
+
+for benchmark in $results_dir/$config/*eio.gz.out; do
+  ipc=$(cat $benchmark | sed -nre "s/$metric[ ]+([\.0-9]+).*/\1/p")
+  printf "%40s\t%5f\n" $(basename $benchmark) $ipc >> $output_file
+done
+
+./average $output_file | tee -a $output_file
+

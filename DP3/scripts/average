@@ -1,0 +1,15 @@
+#!/u/cjs1993/python3/bin/python3
+
+import sys
+from statistics import mean, median
+
+vals = [float(val.split()[1]) for val in open(sys.argv[1])]
+min = min(vals)
+max = max(vals)
+mean = mean(vals)
+median = median(vals)
+print('min = {}'.format(min))
+print('max = {}'.format(max))
+print('mean = {}'.format(mean))
+print('median = {}'.format(median))
+

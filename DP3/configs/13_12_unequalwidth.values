@@ -1,0 +1,13 @@
+-fetch:ifqsize                    32
+-fetch:mplat                      3
+-bpred                            perfect
+-decode:width                     32
+-issue:width                      32
+-commit:width                     4
+-ruu:size                         16
+-lsq:size                         8
+-res:ialu                         4
+-res:imult                        1
+-res:memport                      2
+-res:fpalu                        4
+-res:fpmult                       1

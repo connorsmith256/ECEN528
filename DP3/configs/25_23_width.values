@@ -1,0 +1,11 @@
+-fetch:ifqsize                    32
+-decode:width                     32
+-issue:width                      32
+-commit:width                     32
+-ruu:size                         64
+-lsq:size                         64
+-res:ialu                         4
+-res:imult                        2
+-res:memport                      4
+-res:fpalu                        8
+-res:fpmult                       2

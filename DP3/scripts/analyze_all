@@ -1,0 +1,13 @@
+#!/bin/bash
+
+metrics_file=$1
+
+config_dir="../configs"
+results_dir="../results"
+dashes="-----------------------"
+
+for config in $config_dir/*.values; do
+  config=$(basename $config | cut -f 1 -d '.')
+  ./analyze_metrics $config $metrics_file
+done
+

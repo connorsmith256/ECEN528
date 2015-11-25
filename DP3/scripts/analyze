@@ -1,0 +1,11 @@
+#!/bin/bash
+
+config=$1
+metric=$2
+
+results_dir="../results"
+
+for benchmark in $results_dir/$config/*eio.gz.out; do
+  ipc=$(cat $benchmark | sed -Ene "s/$metric[ ]+([\.0-9]+).*/\1/p")
+  printf "%40s\t%5f\n" $(basename $benchmark) $ipc
+done

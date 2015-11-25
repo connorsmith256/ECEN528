@@ -1,0 +1,5 @@
+#!/bin/bash
+
+period=$1
+python -c "from math import ceil; print ceil(100/$period)"
+
