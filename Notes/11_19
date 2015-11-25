@@ -1,0 +1,7 @@
+GPUS
+	- have scatter/gather
+	- SIMD threads (warps) part of thread blocks
+	- thread blocks part of grid
+	- branches
+		- masks
+		- predicates

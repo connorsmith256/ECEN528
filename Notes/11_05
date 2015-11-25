@@ -1,0 +1,37 @@
+Kilo-Instruction Processors
+	- last-ditch attempt at big ILP
+	- no one has actually built these
+
+Critical problems: structural hazards
+	- reorder buffer:
+		- allocate at dispatch, free at commit
+		- space taken up by "dead" instructions waiting to commit
+		- large latency requires huge buffers
+		- branch misprediction is always a problem for integer benchmarks
+	- instruction queues:
+		- insert at dispatch, remove at issue
+		- most "blocked-long" on long-latency instructions (eg. load miss in L2)
+	- physical register files:
+		- allocate at dispatch, free at commit of next instruction which renamed
+		- a lot of dead instructions waiting to commit
+			- waiting on possible misprediction
+			- commits must be in order
+	- load/store queues:
+		- allocate at dispatch, free at commit
+
+Things not considered
+	- branch prediction accuracy varying
+	- high-speed fetch(?)
+
+Clever things
+	- reorder buffer:
+		- traditional ROB replaced by checkpoints and pseudo-ROB
+	- instruction window:
+		- split into slow-lane after falling out of pseudo-ROB
+	- physical registers:
+		- weird counting stuff
+	- load/store queues:
+		- hierarchical, prediction, buffers, hashing, completely remove it
+
+Results
+	IPC: 1.8-2.5

@@ -1,0 +1,35 @@
+SISD
+	- traditional instructions
+SIMD
+	- vectorized type instructions
+	- less general than vector machines
+MISD
+	- systolic arrays, wavefront processors
+MIMD
+	- typical parallelism
+
+SIMD
+	- short, fixed-length vectors
+	- instead of one 64-bit operation
+		- 2 32-bit
+		- 4 16-bit
+		- 8 8-bit
+	- really cheap to add: 2-3% area
+	- very easy to accelerate media operations
+	- eventually shifted to dedicated 128/256-bit
+		- explosion in number of specialized instructions
+	- poor backwards compatibility
+		- compiler will not generate instructions even if it could with default flags
+	- lack of support
+		- no gather/scatter
+		- no strides
+		- no masks
+
+Roofline models
+	- programs won't achieve roofline
+	- model allows for prediction of max performance on given machine
+	- intensity = FLOPs / byte
+		- lowest realistic: 2 loads + a store @ 8 bytes each = 1/24
+	- top of roof is max FLOPs of machine
+	- slope of roof is at 45 degrees such that intensity of 1 corresponds to 2nd bandwidth
+	- ridge shows intersection of memory and compute limitation

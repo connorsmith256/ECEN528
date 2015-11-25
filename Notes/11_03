@@ -1,0 +1,22 @@
+HW vs SW
+	- HW has the advantage of being able to consider machine state
+	- SW can see a larger scope
+
+Perfect processor
+	- perfect BP
+		- even know future values!
+	- perfect caches
+	- infinite register renaming
+		- no WAW/WAR hazards
+	- infinite window size
+
+Benchmarks
+	- perfect processor: never more than 150 IPC
+	- pessimistic processor: maybe 1.5 IPC
+
+Caveats: H&P study assumptions
+	- given output from compiler, try different architecture
+		- compiler restructuring can *create* better ILP and shorten the dependence tree
+	- no value prediction
+		- never actually delivered; too hard
+	- no memory renaming

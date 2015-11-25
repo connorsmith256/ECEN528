@@ -1,0 +1,13 @@
+3 ways of multi-threading
+	- fine-grained
+		- thread switch every cycle
+		- removes vertical waste
+	- course-grained
+		- thread switch on long delay instructions
+		- high priority threads aren't hurt at all
+		- no one really does this
+	- simultaneous
+Why didn't reality match predictions?
+	- perhaps didn't model correctly
+	- attempting to dispatch from multiple threads
+	-

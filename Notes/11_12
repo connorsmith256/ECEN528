@@ -1,0 +1,9 @@
+vector machines
+	- data level parallelism
+		- operations on one piece of data are completely independent from others
+		- loop level is one type
+		- saves reloading instructions, renaming registers, etc.
+	- helps with very long latency memory
+	- almost always floating point
+	- have special register file and L/S unit
+	- functional units almost always pipelined
