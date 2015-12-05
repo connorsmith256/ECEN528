@@ -1,0 +1,10 @@
+DVFS
+	- P = C * V^2 * A * f
+	- DVFS concerned with scaling V and f
+	- Razor: scale down until you fail
+	- changing V, f at runtime has time and energy costs
+stacking effect
+	- Putting two transistors in series dramatically reduces leakage
+	- lots of research around using it in caches
+		- determine size of working set, turn off parts you don't need
+Let cache lines decay based off which are "dead"
