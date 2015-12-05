@@ -1,3 +1,10 @@
 Computer_Architecture_5th.pdf
 Computer_Architecture_Solutions.pdf
 sftp-config.json
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
