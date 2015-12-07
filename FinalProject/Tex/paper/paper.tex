@@ -80,15 +80,50 @@ TODO
 \section{Architectural Overview}
 \subsection{NVidia Warps}
 TODO
+Multiple threads are grouped together in "warps"
+Thread within a warp are mapped to a vector functional unit (SIMD)
+NVIDIA's Maxwell GPUs support up to 64 concurrent warps (2048 threads)
+Talk about what a streaming multiprocessor is
+Modern unified GPUs consist of multiple streaming multiprocessors (SMs)
+  - warp (NVIDIA)/wavefronts (OpenCL)
+  - similar to a SIMD processor
+  - SM has a warp pool to store context of all running threads
+  - HW warp scheduler dispatches and allocates resources
+  - large (much larger than a CPU) register file shared across all threads
+    - Maxwell architecture has 64K 32-bit registers for each SM
+  - kernel: large number of threads executing same piece of code
+  - multiple threads form a thread-block; same life-cycle, dispatched together
+  - threads within a thread-block (32 or 64) organized into warps
+  - warp scheduler schedules a ready warp each cycle, hiding latency of stalled warps
+  - CPU launches GPU kernels by dispatching launch commands. Kernel parameters are passed from GPU to CPU at launch time and stored in GPU global memory
+  - kernels from different streams are independent and can be run concurrently, but kernels within a stream are sequential
+  - see DTBL paper for good intro
+  - also see Locality Aware paper for internals of a SM
+  - cooperative thread array (CTA) - see Weak behavior paper
 
 \section{Challenges}
 \subsection{Heterogeneous Applications}
 TODO
+Maximizing resource utilization while minimizing shared resource contention between CPU and GPU is hard
 \subsection{Memory Limitations}
 TODO
 
 \section{New Designs}
-TODO
+Warp compression stuff
+  Assist warps (CABA)
+  Warped Compression
+Dynamic tuning
+  Coordinated warp scheduling (CAWA)
+  Dynamic Thread Block Launch (DTBL)
+  Equalizer
+  Fine-grain Hardware Worklists (HWWL)
+  Variable Warp Size (VWS)
+CPU/GPU contention, NoC
+  Managing Concurrency in Heterogeneous
+Compiler/SW-only design
+  Divergence Management
+  Locality Aware Mapping
+  (x) WeakBehaviorProgrammingAssumptions
 
 \section{Conclusions}
 \begin{itemize}
