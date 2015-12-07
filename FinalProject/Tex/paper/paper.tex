@@ -158,7 +158,7 @@ concludes the survey.
   GPU's global memory.
   \item Grids are what actually run on the GPU and are composed of multiple
   ``thread- blocks'', also called a cooperative thread array (CTA). Thread-
-  blocks contain on the order of 512 threads. Each thread within a thread-block
+  blocks contain on the order of 1024 threads. Each thread within a thread-block
   has the same life-cycle as all the others, meaning that they are dispatched to
   and swapped from a SM at the same time.
   \item Individual threads exist within a thread-block. These threads are
