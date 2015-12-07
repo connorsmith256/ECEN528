@@ -140,9 +140,9 @@ components:
   \item[Multiple caches] Maxwell includes a unified L1/texture cache, which used
   as a coalescing buffer for memory accesses. The buffer gathers requested data
   and sends the entire group to a warp. There are also additional caches TODO.
-  \item[Shared memory] There are 96KB available per SM in Maxwell. However, thread blocks
-  are limited to 48KB each. Shared memory for a thread-block is only accessible
-  by threads within the same thread-block.
+  \item[Shared memory] There are 96KB available per SM in Maxwell. However,
+  thread blocks are limited to 48KB each. Shared memory for a thread-block is
+  only accessible by threads within the same thread-block.
   \item[Multiple warp schedulers] Warp schedulers dispatch and allocate
   resources. Maxwell contains four schedulers per SM, and functional units are
   assigned to a particular scheduler. Using a power-of-two number of CUDA cores
