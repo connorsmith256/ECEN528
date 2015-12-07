@@ -126,53 +126,62 @@ concludes the survey.
 
 \section{Architectural Overview} \label{sec:architecture}
 \subsection{Streaming Multiprocessors}
-\begin{itemize}
-  \item Modern unified GPUs consist of multiple streaming multiprocessors (SMs)
-  \item similar to a SIMD processor
-  \item A SM contains
-  \begin{itemize}
-    \item a large register file shared across all threads. This register file
-    typically contains thousands of registers (the NVIDIA Maxwell architecture
-    has 64K 32-bit registers in each SM)
-    \item multiple caches. Maxwell includes a unified L1/texture cache used as a
-    coalescing buffer for memory accesses. The buffer gathers requested data and
-    sends the entire group to a warp.
-    \item shared memory (96KB per SM). Thread blocks are limited to 48KB each.
-    Shared memory for a thread-block is only accessible by threads within the
-    same thread-block.
-    \item multiple warp schedulers. A warp scheduler dispatches and allocates
-    resources. Maxwell has four per SM. FUs are assigned to a particular
-    scheduler. Power of two CUDA cores per SM allows for simple partitioning
-    among schedulers. One ready warp is scheduled per cycle, hiding the latency
-    of stalled warps.
-  \end{itemize}
+Modern unified GPUs consist of multiple streaming multiprocessors (SMs). While
+there are many GPU architectures available today, the following description is
+based off of NVIDIA's Maxwell architecture, which was released in 2014. These
+SMs are similar to SIMD processors and typically contain the following
+components:
+\begin{description}
+  \setlength\itemsep{1em}
+  \item[A large register file] The register file is shared across all threads
+  and typically contains thousands of registers, many more than are usually
+  found in a CPU. NVIDIA's Maxwell architecture has 64K 32-bit registers in each
+  SM.
+  \item[Multiple caches] Maxwell includes a unified L1/texture cache, which used
+  as a coalescing buffer for memory accesses. The buffer gathers requested data
+  and sends the entire group to a warp. There are also additional caches TODO.
+  \item[Shared memory] There are 96KB available per SM in Maxwell. However, thread blocks
+  are limited to 48KB each. Shared memory for a thread-block is only accessible
+  by threads within the same thread-block.
+  \item[Multiple warp schedulers] Warp schedulers dispatch and allocate
+  resources. Maxwell contains four schedulers per SM, and functional units are
+  assigned to a particular scheduler. Using a power-of-two number of CUDA cores
+  per SM allows for simple partitioning among schedulers. One ready warp is
+  scheduled per cycle, which allows the GPU to hide the latency of stalled
+  warps.
+\end{description}
 
-\end{itemize}
 \subsection{Kernels, Thread-blocks, and Warps}
-\begin{itemize}
-  \item A kernel is a massive number of threads executing same piece of code.
-  Kernels from different streams are independent and can be run concurrently,
-  but kernels within a stream are sequential.
-  \item The CPU launches GPU kernels by dispatching launch commands. Kernel
-  parameters are passed from the GPU to CPU at launch time and are stored in the
-  GPU's global memory.
-  \item Grids are what actually run on the GPU and are composed of multiple
-  ``thread- blocks'', also called a cooperative thread array (CTA). Thread-
-  blocks contain on the order of 1024 threads. Each thread within a thread-block
-  has the same life-cycle as all the others, meaning that they are dispatched to
-  and swapped from a SM at the same time.
-  \item Individual threads exist within a thread-block. These threads are
-  grouped, usually around 32 at a time, into ``warps''. The warp is the
-  fundamental unit of execution on GPUs. Warp is NVIDIA's term; AMD and OpenCL
-  use the term ``wavefront''. Maxwell supports up to 64 warps resident per SM.
-  This doesn't mean that all 64 are executing at the same time, but that the
-  architecture can support that many warp contexts concurrently.
-  \item The SM maintains a warp pool to store the context of all running
-  threads. Warps are scheduled by the warp schedulers from this pool.
-  \item Threads within a warp are mapped to a vector functional unit such that
-  all threads execute the same instruction on different data, just a like a SIMD
-  unit.
-\end{itemize}
+A kernel is a potentially massive number of threads executing same piece of
+code. From the application programmer's point of view, a function is called on
+the device with a certain number of blocks and a certain number of threads
+within each block. The CPU launches GPU kernels by dispatching launch commands.
+Kernel parameters are passed from the CPU to the GPU at launch time and are
+stored in the GPU's global memory. Kernels from different streams are
+independent and can be run concurrently, but kernels within a stream are
+sequential.
+
+Grids are what actually run on the GPU, and they are composed of multiple
+``thread- blocks'', also called a cooperative thread array (CTA) outside of
+NVIDIA's nomenclature. Maxwell supports up to 64K blocks within a grid. Thread-
+blocks contain potentially many threads, on the order of 1024 for modern
+architectures. Each thread within a thread-block has the same life-cycle as all
+the others, meaning that they are dispatched to and swapped from a SM at the
+same time.
+
+Individual threads exist within a thread-block. These threads are grouped into
+``warps'', usually around 32 at a time. The warp is the fundamental unit of
+execution on GPUs. Threads within a warp are mapped to a vector functional unit
+such that all threads execute the same instruction on different data, just a
+like a SIMD unit. With this in mind, it would be more accurate to simply call
+``threads'' a sequence of SIMD lane instructions, but this survey will continue
+to refer to them as threads to maintain consistency with the literature. The
+term ``Warp'' is the term used by NVIDIA, while AMD and OpenCL use
+``wavefront''. Maxwell supports up to 64 warps resident per SM. Note that this
+doesn't mean that all 64 warps are executing at the same time, but that the
+architecture can support that many warp contexts concurrently. The SM maintains
+a warp pool to store the context of all running threads. Warps are scheduled by
+the warp schedulers from this pool.
 
 \section{Challenges of GPGPU} \label{sec:challenges}
 \subsection{Heterogeneous Applications}
