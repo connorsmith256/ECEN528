@@ -78,21 +78,50 @@ Brigham Young University.
 
 
 \section{Introduction}
-\begin{itemize}
-\item State the purpose of the survey
-\item Explain why GPGPU is important and hard
-\item Explain what each of the following sections is
-\end{itemize}
+The purpose of this survey is to provide an introduction to general-purpose
+computing on graphics processing units (GPGPU), the challenges inherent to this
+field, and some active areas of research within the field to alleviate some of
+these problems. To the best of the author's knowledge, this is the first survey
+in this semester's course to discuss GPGPU.
 
-\section{Background}
-\subsection{GPU History}
-TODO
-\subsection{GPGPUs and Current State}
-TODO
-\subsection{Applications}
-TODO
+The term GPU was popularized around the turn of the 21st century by NVIDIA as
+consumer-level devices began to need dedicated accelerators to render 3D
+graphics. Today, most all computers contain GPUs, from supercomputers to
+laptops, desktops to smartphones, although some of these do not use dedicated
+graphics cards. The area of GPGPU started to take off roughly a decade ago when it began to be
+practical to solve traditional problems with the massively parallel nature of
+GPUs. Using hundreds or even thousands of ``cores" to perform computations in
+parallel is tempting (even if the cores aren't really cores at all), but brings
+with it a new set of challenges.
 
-\section{Architectural Overview}
+In a way, the problems of GPGPU are an extension of those sometimes seen in a
+traditional desktop multiprocessing system. Even when under a heavy compute
+load, it isn't always easy to keep all of the cores doing useful work in any
+given cycle. Between limitations in structural units, dependences between
+instructions, and latencies of memory accesses, the processor cannot help but
+stall sometimes. This problem is exacerbated by orders of magnitude when solving
+heterogeneous problems on a GPU. GPUs were originally designed to operate on
+graphics processing, problems that are well-structured and have simple, inherent
+data parallelism. Problems that do not contain parallelism that is easily mapped
+to the architecture of a GPU fail to keep all of the cores in a GPU busy or
+strain the memory bandwidth past the GPU's ability to hide latency.
+
+The remainder of this survey is organized as follows. Section
+\ref{sec:architecture} provides a brief architectural overview of GPUs. Section
+\ref{sec:challenges} elaborates on the challenges specific to GPGPU
+applications. Section \ref{sec:research} summarizes and discusses several
+current areas of research related to GPGPU. Section \ref{sec:conclusions}
+concludes the survey.
+
+% \section{Background}
+% \subsection{GPU History}
+% TODO
+% \subsection{GPGPUs and Current State}
+% TODO
+% \subsection{Applications}
+% TODO
+
+\section{Architectural Overview} \label{sec:architecture}
 \subsection{NVidia Warps}
 TODO
 Multiple threads are grouped together in "warps"
@@ -116,14 +145,14 @@ Modern unified GPUs consist of multiple streaming multiprocessors (SMs)
   - also see Locality Aware paper for internals of a SM
   - cooperative thread array (CTA) - see Weak behavior paper
 
-\section{Challenges}
+\section{Challenges} \label{sec:challenges}
 \subsection{Heterogeneous Applications}
 TODO
 Maximizing resource utilization while minimizing shared resource contention between CPU and GPU is hard
 \subsection{Memory Limitations}
 TODO
 
-\section{New Designs}
+\section{New Designs} \label{sec:research}
 \begin{itemize}
 \item Warp compression stuff
   \begin{itemize}
@@ -150,7 +179,7 @@ TODO
   \end{itemize}
 \end{itemize}
 
-\section{Conclusions}
+\section{Conclusions} \label{sec:conclusions}
 \begin{itemize}
 \item Mention what the survey talked about
   \begin{itemize}
