@@ -1,0 +1,39 @@
+- master-slave paradigm common
+- separate address spaces -> high overhead in transferring data
+- movement toward heterogeneous multiprocessing architectures (mix of CPU/GPU)
+	- AMD's accelerators
+	- NVIDIA's Echelon project
+	- Intel's Sandybridge/Ivybridge
+- CPU apps more latency sensitive, GPU apps more bandwidth sensitive
+- GPUs tend to cannibalize performance of CPUs more than vice versa
+	- goal: improve performance of both
+- two schemes
+	- CPU-Centric Concurrency Management (CM-CPU)
+		- dynamically monitor congestion, modulate GPU TLP by reducing number of active warps
+			- modulation done in steps of 2 warps
+	- Balanced Concurrency Management (CM-BAL)
+		- goal: recover performance lost from CM-CPU
+		- detect if GPUs don't have enough latency tolerance, increase number of active warps to hide it
+- baseline assumptions
+	- tile-based architecture (mesh of CPU and GPU cores)
+	- 2:1 ratio (based of relative area of each)
+	- total of 14 CPUs and 28 GPUs
+	- last level cache is shared by CPU and GPU
+	- two warp schedulers per GPU
+	- shared network and shared memory channels
+- effects of GPU concurrency on GPU performance
+	- increasing the number of concurrent warps can benefit/hurt performance
+	- too many warps can thrash the cache or cause memory congestion
+- effects of GPU concurrency on CPU performance
+	- memory congestion hurts CPUs much more than GPUs
+		- not enough work (TLP, MemLP) to do to hide the latency
+	- reducing concurrency of GPUs might or might not hurt GPUs, but never hurts CPUs
+- overhead
+	- 16 bytes per GPU core, 3 bytes per memory partition, 8 bytes for the CTA scheduler
+- results
+	- CM-CPU: 11% performance loss for GPU, 24% performance increase for CPU
+	- CM-BAL: 7% loss for GPU, 7% gain for CPU
+	- overall system speedup (OSS)
+		- CM-CPU: ~1.25x for low GPU importance, 0.875x for high GPU importance
+		- CM-BAL: 1.05x-1.1x across the board (tuned based on importance of GPU)
+	- power consumption expected to reduce

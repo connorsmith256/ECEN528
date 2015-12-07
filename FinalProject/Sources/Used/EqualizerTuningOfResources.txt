@@ -1,0 +1,31 @@
+Equalizer
+
+- most GPU systems are bottlenecked by compute resources, memory bandwidth, or data cache
+- data cache
+	- Fermi architecture has 48kB d$ -> 30 bytes per thread avg.
+- three reasons workloads cannot be characterized a priori
+	- heavily dependent on input
+	- heavily dependent on given GPU
+	- GPGPU applications are irregular
+- Equalizer
+	- runs on individual SMs
+	- determines overall resource requirement of kernel
+		- based on
+			- # active warps: not paused or unaccounted
+			- # warps waiting on dependent memory instruction: can't be executed because operands are not available
+			- # warps ready to issue to memory pipeline: L/S queue cannot accept a new inst this cycle
+			- # warps ready to issue to arithmetic pipeline: have operands, waiting to issue
+	- adjusts core freq., DRAM freq., # of threads
+	- determines whether to adjust based off resource contention
+		- epoch: end of each execution window
+		- if increasing threads, the Global Work Distribution Engine (GWDE) issues a new thread block
+		- if reducing threads, the CTA Pausing technique is used
+		- # thread blocks only changed if 3 consecutive epochs differ from cur value
+		- new V,f values submitted to the Frequency Manager every "epoch", adjusts values if necessary
+			- uses 1 of 3 discrete steps: low, normal, high (15% reduction/increase)
+			- assumes linear change in voltage with frequency
+	- energy efficient and high performance modes
+	- results
+		- insignificant area/energy overhead of additional hardware
+		- performance mode: 6% additional energy, 22% performance boost
+		- efficient mode: 15% energy savings, 5% performance boost

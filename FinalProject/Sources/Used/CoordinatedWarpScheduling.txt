@@ -1,0 +1,51 @@
+CAWA: Criticality-aware warp acceleration
+
+- GPUs hide latency by swapping out stalled warps, but it's not good enough
+- latency hiding limited by
+	- imbalanced workloads in parallel warps
+	- irregular memory access patterns
+	- shared cache contention
+- "critical warp": slowest warp that must be executed before others
+- oracle identification of crit warp could give 21% performance improvement
+- Criticality-aware warp acceleration (CAWA)
+	- seeks to reduce execution time disparity between parallel warps
+	- three components
+		- dynamic warp criticality prediction
+			- determine which warp is critical, used in next two parts
+			- per-warp criticality counter based on
+				- degree of instruction count disparity (diverging branches within a warp)
+					- if (m insts.), else (n insts.) -> m + n insts. actually executed
+				- stall latencies (resource contention) based on # stall latencies due to contention and delays
+				- nCriticality = nInst * w.CPI_avg + nStall
+					- nInst: relative instruction count disparity between parallel warps
+					- w.CPI_avg: per-warp average CPI
+					- nStall: stall cycles from contention and scheduler
+		- greedy criticality-aware warp scheduler
+			- built on top of two existing warp scheduling policies
+			- gives more time to critical warps
+				- ties broken by age of warp s(older first)
+		- criticality-aware cache prioritization
+			- allocates a fixed number of L1 d$ ways to data for critical warps
+				- # determined by experimental analysis of benchmarks: 8/16 ways
+			- predicts which cache lines are critical
+- problem: warps within a thread-block have the same lifeline, but take different time
+	- all warps blocked until "critical warp" (slowest) finishes; synchronization purposes
+	- average time difference is 45%, as high as 70%
+	- causes of problem
+		- workload imbalance
+			- unbalanced work -> overall time = time of slowest warp
+		- diverging branch behavior
+			- warps execute instructions together, so diverging control flow slows everything down
+		- contention in memory subsystem
+			- data cache capacity and mem bandwidth are scarce resources
+			- almost half of the delay in warps is due to delays in memory
+		- warp scheduling order
+			- one warp scheduled per cycle, so a warp could have to wait up to N cycles (N = # of warps)
+- results:
+	- performance
+		- 9.2% average improvement over all applications
+		- 3.13X on app with severe thrashing
+		- 23% on *sensitive* apps
+	- identifying critical warp accuracy
+		- slow warp defined as slow 50% of warps
+		- can identify the crit warp as a slow warp 73% of the time

@@ -1,0 +1,36 @@
+DTBL: Dynamic Thread Block Launch
+
+- GPUs traditionally good for scientific/engineering computations
+	- good structure, good symmetry
+	- straightforward mapping to 1D-3D thread block structures
+- emerging applications are dominated by algorithms characterized by irregular control, data, and mem access
+- most applications exhibit "pockets" of parallelism (regular structure) at a smaller level
+	- can be exploited with device-side nested kernel launching
+	- expensive; cost of device-side kernel launch is high
+- DTBL: Dynamic Thread Block Launch
+	- launches light weight thread blocks dynamically and on demand
+		- correspond to cooperative thread arrays (CTAs)
+	- instead of launching entire kernels, just do thread blocks
+	- allow additional thread blocks to be launched device-side and added to the list of TBs to execute
+	- native kernel: initial kernel launched by host
+	- native TBs: TBs that compose native kernel
+	- aggregated TBs: TBs created by DTBL
+	- aggregated kernel: native kernel + aggregated TBs, coalesced
+- existing device-side kernel launches
+	- CUDA Dynamic Parallelism
+		- parent kernels launch child kernels through device-side API calls
+		- child kernels start any time after being launched by their parent
+		- parent kernels can request synchronization, yield to child
+		- nontrivial overhead: average 36.1% performance decrease
+		- also consumes more memory for storing pending kernels and states of parent kernels
+	- characteristics (read: problems) of existing implementations
+		- high kernel density: 3K device kernel launches for a typical BFS
+		- low compute intensity: average number of threads = 40 (close to the warp size)
+		- workload similarity: usually similar operations but with different configs/data
+		- low concurrency/scheduling efficiency: low compute intensity means either low utilization or poor mem latency hiding
+- DFP: dynamically formed [pockets of] parallelism
+	- even complex programs exhibit regular substructures
+- GPU microarchitecture extended to process new aggregated groups
+	- maintains data structures for keeping track of deployed kernels and TBs that comprise them
+- results
+	- average 1.21 performance increase over flat implementation, 1.40x over device-kernel launch functionality

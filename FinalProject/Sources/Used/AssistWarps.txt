@@ -1,0 +1,82 @@
+CABA: core-assisted bottleneck acceleration
+
+AssistWarps
+	- GPUs well suited to support thousands of threads
+		- heterogeneous applications and bottlenecks limit performance
+	- GPUs are fine-grained multithreading to hide mem latencies
+	- have SIMD-like comp units, large register files
+	- dedicated hardware can create HW-generated "help threads"
+		- easy
+			- lots of available resources
+			- simple GPU pipeline
+		- hard
+			- LOTS of threads needed
+			- hard to partition resources
+			- lock-step execution and complex scheduling common, increase complexity of management of helpers
+	- Core-Assisted Bottleneck Acceleration (CABA)
+		- generates special warps: assist warps
+		- execution managed at granularity of a warp
+		- assist warp shares the same context as the regular warp it assists
+			- assist gets available registers
+	- main uses of CABA
+		- #1: compression
+			- use assist warps to compress/decompress data from memory
+			- better than dedicated HW
+				- this uses existing HW that isn't being utilized
+				- different apps have different patterns suited for different compression algs.
+			- uses Base-Delta-Immediate (BDI), Frequent Pattern (FPC), and C-Pack compression algs
+			- can be disabled when data isn't easily compressed/not worth the time and energy
+			- done in caches on a per-line basis, requires modifying mem controller
+		- using assist warps to perform memoization
+			- store frequently-computed values in main memory
+			- cache values as LUTs, use assists to load/store values
+		- using idle memory pipeline to prefetch
+	- results
+		- reduced memory bandwidth by 2.1X
+		- improved performance by 41.7%
+			- only 2.8% less than ideal case (no overhead)
+		- reduced overall system energy by 22.2%
+			- only 4.0% more than ideal
+		- increased power consumption by 2.9%
+	- execution time split into categories
+		- Active Cycles
+		- Compute
+		- Memory
+		- Data Dependence Stalls
+		- Idle Cycles
+	- most stalls are Compute, Memory, and Data Dependence
+	- most apps are memory bound, bottlenecked by off-chip mem bandwidth
+	- on average, 24% of the register file is unallocated
+	- mix of HW and SW
+		- SW only options
+			- treat helper threads as independent kernel code
+				- high overhead
+				- complicated communication between primary and helpers
+			- embed helper within primary
+				- little flexibility in adapting to runtime requirements
+				- helpers cannot be triggered or squashed independent of pirmary
+		- HW only option
+			- makes register allocation for assists and data comms between helpers and primaries harder
+			- makes having a flexible interface harder
+		- combination (best of both worlds)
+			- dynamically insert instructions into execution stream
+			- HW-based management of threads: assist warps
+				- set of instructions
+				- no additional resources; shares context with regular (parent) warp
+			- register file/shared mem allocation
+				- helper thread register values not preserved between invocations of assist warps
+				- all instances of helper threads for a parent thread use the same registers, allocated statically by compiler
+			- programmer interface
+				- 1) annotate code using CUDA extensions with PTX instructions
+				- or 2) assist warps can be written by microarchitect in internal GPU instruction format, enabled by programmer
+					- include priority of assist warp, trigger conditions, live-in/out variables for comms with parent warp
+						- high priority assists take precedence over parent
+						- low priority scheduled only when resources available, no guarantee run or complete
+		- HW additions
+			- Assist Warp Store (AWS): stores subroutines
+			- Assist Warp Controller (AWC): trigger, track, manage assist warp execution
+			- Assist Warp Buffer (AWB): inside instruction buffer, stores triggered warps until issued by scheduler
+		- mechanisms
+			- triggered on event, selected by AWC in round-robin fashion, moved into AWB
+			- executed like a normal warp
+			- dynamic throttling to prevent stalling application

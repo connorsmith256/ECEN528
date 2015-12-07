@@ -1,0 +1,43 @@
+- complex control flow leads to divergent branches (and warps)
+- divergence typically handled by selectively enabling a subset of threads in a vector
+	- (done with masks in GPUs)
+- vector machines handle divergence explicitly
+	- predication registers used to conditionally execute statements
+	- density-time exectuon and compress-expand transformations proposed to help
+	- Intel MIC accelerators, Cray-1 vector procs, and AMD GPUS(!) work this way
+- HW management of divergence
+	- implicitly provided by NVIDIA GPUs
+	- chooses one path, defers the other by pushing PC and thread mask onto "divergence stack"
+	- reconvergence done through popping off the stack
+	- divergence and reconvergence nest fine
+- SW management
+	- uses predicate registers
+	- "consensual branches": only taken if all threads in the warp have the same pred val
+	- implemented currently, but not publicly described except in a patent
+	- isomorphic to vector predication
+	- used very limitedly, only when heuristics indicate potential performance boost
+- thread-aware predication algorithms
+	- compiler-level, remove control flow by linearizing execution paths
+	- thread-aware control dependence graphs
+		- predicate nodes inserted between dependent basic blocks
+		- CDGs augmented by compiler
+			- loop masks to track which threads are still executing
+			- continue masks to track which threads are in the current iteration
+			- exit masks to track which threads exited by specific exit blocks
+	- static branch-uniformity optimization
+		- thread-invariant branch conditions -> replace the branch with a consenual branch, remove predication
+		- removes unnecessary work, lightens register pressure
+	- runtime branch-uniformity optimization
+		- branch conditions that cannot be proven thread invariant have dynamic predicate uniformity tests inserted by the compiler
+- linearizing control flow
+	- structural analysis used to determine control flow
+	- edges in CFG reversed direction
+	- depth-first post-order traversal yields a schedule
+- results
+	- only 2.7% slower on average
+		- some better, some worse
+	- little to no area/power/energy implications
+	- allows for less hardware design complexity, less verification costs
+		- no difference from the programmer's view
+	- execution order using a divergence stack is sometimes nondeterministic, limiting compiler guarantees
+		- techniques/algorithms discussed here can analyze and guarantee at compile-time, opens up additional opportunities

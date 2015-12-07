@@ -1,0 +1,20 @@
+Weak behaviours and programming assumptions
+
+- concurrency poorly specified
+	- documentation and programming guides contain ambiguity and omissions
+	- vendors use proprietary systems, do not give semantics for instructions or provide assemblers
+- goals
+	- discover "weak behaviors" unknown to programmers
+	- expose false programming assumptions made by community
+- focus/assumptions
+	- focus on interactions in the same CTA but different warps, or same grid but different CTA
+	- assumes threads in same warp actually execute the same instructions
+- weak behaviors
+	- sequential consistency (SC) per location
+		- coRR: coherence of read-read pairs
+	- cache operators
+		- coherent reads (coRR)
+		- message massing (mp)
+		- volatile access
+- programming assumptions
+	- "GPUs exhibit no weak memory behaviours"

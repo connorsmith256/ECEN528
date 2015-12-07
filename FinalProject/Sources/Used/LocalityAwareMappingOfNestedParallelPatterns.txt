@@ -1,0 +1,44 @@
+Locality-Aware Mapping
+
+- high-level language extensions developed to make writing parallel programs easier
+	- Copperhead, Nikola, Accelerate
+- nested parallelism is hard
+	- previous attempts are poor
+		- 1D mapping: only parallelize the outer Map; one GPU thread for each iter
+		- thread-block/thread mapping: each iter of outer pattern gets a thread block, threads parallelized in block
+		- warp-based mapping: each iter of outer assigned to a warp, inner iters to threads in a warp
+	- no generalized fixed mapping strategy
+- goal: automatically map nested patterns to GPUs
+- IR developed that allows for nested parallel patterns
+- mapping analysis
+	- parameters
+		- dimension: unique dimension for each nest level
+		- block size: # threads in a given block
+		- degree of parallelism (DOP): # of parallel computations enabled by a mapping
+	- coverage and flexibility
+		- not limited to two levels like thread-block/thread mapping or warp-based mapping
+	- constraints used to evaluate the strength of a mapping (2 orthogonal categories)
+		- local: applied to a specific pattern (ex. sequential accesses should be mapped to fastest varying dim)
+		- global: consider multiple patterns together (ex. span type should be most conservative required at the level)
+		- hard: must be satisfied for correct execution (ex. max # of threads in a block)
+		- soft: provide performance hints, but can be violated (ex. avoiding thread divergence)
+	- finding most efficient mapping
+		- all candidates are constructed
+		- only candidates meeting hard constraints are left
+		- keep track of highest scoring mapping; ties broken in favor of higher DOP, then randomly
+	- code generation
+		- high level template chosen based on the mapping, used to generate CUDA code
+- optimizations
+	- nested parallelism can cause large amount of dynamic memory allocation
+		- dynamic memory allocation
+			- constant size allocation across all outer loop iterations allows for preallocation before kernel launch
+		- shared memory
+			- uses prefetching when loops are imperfectly nested
+			- fetches data for multiple out loop iterations simultaneously
+- results
+	- simple nested patterns
+		- generated code 20% slower than manually-optimized using 1D mapping
+	- fixed 2D strategies
+		- others are 1.5-9.6x slower than MultiDim
+	- real-world applications
+		- 1.18x-4.38x faster than 8-core CPU, 4.5x-8.95x faster than 1D mapping

@@ -1,0 +1,43 @@
+Variable Warp Size (VWS)
+
+- two types of divergence
+	- control flow divergence
+		- warp utilization increases as warp size decreases
+	- memory divergence
+- three types of workloads
+	- divergent: bigger warp size -> worse performance
+	- warp-size insensitive
+	- convergent: bigger warp size -> better performance
+	- latter two have better energy efficiency with larger warps
+- recent and future work will be increasingly divergent
+	- raytracing, molecular dynamics simulations, game physics simulations, graph processing
+- memory convergence slip
+	- memory accesses that were coalesced with a larger warp are distributed over multiple cycles in smaller warps
+	- does not degrade performance in divergent applications
+		- less opportunity for mem convergence in the first place because fewer threads are participating in each mem access
+		- when it does occur, it results in more cache hits
+	- does effect convergent applications
+		- increases total # of mem accesses and cache misses
+- Variable Warp Sizing (VWS)
+	- minimum warp size set to 4
+		- graphics workloads process "quads" (threads in groups of 4)
+		- diminishing returns at warp sizes smaller than 4
+		- area overhead increases too much
+	- splits traditional datapath into 8 slices
+		- each can fetch, decode, issue independently
+		- slices statically assigned threads in a linear fashion
+			- no thread migration between slices
+	- no additonal register files banks, comms; no changes to memory
+	- warp ganging unit added
+		- fetches and decodes once for all warps in a gang
+		- gang issue scheduler enforces lock-step execution of all slices in a gang
+	- independent warps added to fill in holes in gangs
+	- gangs can be split and reformed
+	- gangs get prioritized fetch and issue to ensure as much lockstep as possible
+- results
+	- varied warp size, gang scheduling policies, reformation policies, splitting policies, gang size
+	- I-VWS: inelastic variable warp sizing (gangs split based on control path, never recombined)
+	- performance
+		- 35% increase for a 32-wide machine (for 4- and 8-wide warps)
+	- area overhead
+		- 5% increased area for 4-wide warps, 2.5% for 8-wide

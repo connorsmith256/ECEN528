@@ -1,0 +1,68 @@
+Warped-Compression
+
+- GPU register files contribute up to 15% of total GPU chip power
+- two past approaches to save power
+	- turn off unused part of the register file
+		- saves both leakage and dynamic power
+		- places used registers in drowsy state to reduce leakage
+	- take advantage of register use locality with register file caches
+- this paper exploits value similarity
+	- measured by arithmetic distance |n|
+	- register values across threads in a warp store similar values
+		- repeated storing, reading, writing redundant data is source of power inefficiency
+- warped-compression
+	- dynamic power
+		- decreases access count by compressing operand data into fewer register banks
+		- compressed read/write activates fewer bitlines, fewer bits are moved
+- GPU register files
+	- Kepler GPUs have 192 execution units, 2048 threads, 256KB register file
+	- register file composed of SRAM banks
+	- all thread registers in a warp are statically allocated on consecutive banks with same entry index
+- data compression
+	- some architectures already use data compression
+		- Maxwell improves effective bandwidth by 25% using a compression scheme
+	- compression schemes should satisfy two conditions
+		- data must have a high compression ratio (so it's actually worth it)
+		- compression/decompression latency should be short
+			- thus schemes usually focus on L2 (last level) cache
+- register value similarities
+	- distance calculated between successive thread registers in a warp
+	- four bins
+		- zero distance: values are identical
+		- 128 bin: differ by at most |128|
+		- 32K bin: differ by at most |2^15|
+		- random: differ by more than others
+	- 79% of warps are non-divergent
+		- 79% of registers in non-divergent warps are not random
+			- 62% of total execution time is not random
+	- 57% of registers in divergent warps are in the random bin
+	- reasons for similarity
+		- data arrays are accessed using thread IDs of successive threads
+		- dynamic range of input data is small for many things
+- compression algorithm
+	- tradeoff of compression ratio vs latency
+	- base-delta-immediate (BDI) most suitable
+		- very low decompression latency
+	- three fixed size representations allowed
+		- runtime choice of parameters inefficient
+		- data left uncompressed if no good fit to any of the 3
+- warped-compression operation
+	- computed values compressed before writing, decompressed before reading
+	- value subbed/added to base as appropriate to generate delta
+	- most warp insts have 2 sources, 1 dest
+		- 2 decompression units, 1 compression unit for 1 warp/cycle
+		- 2 warps/cycle -> 4 decompression, 2 compression
+- reducing leakage
+	- bank-level power gating for banks left idle after compression
+	- if no entries in a bank are used, entire bank is turned off
+	- wakeup delay of 10 cycles
+- results
+	- area overhead: 0.3% total SM size
+	- energy
+		- 35% lower dynamic consumption
+		- 10% lower static
+		- 25% overall reduction
+	- time
+		- added pipeline stages (compress/decompress) adds time
+		- branch divergence handled by dummy MOVs
+		- total performance loss: 0.1%

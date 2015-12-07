@@ -1,0 +1,59 @@
+Fine-Grain Hardware Worklists
+
+- two common approaches to map algorithms working on graphs to GPUs
+	- topology-driven
+		- thread index is used to determine which nodes to operate on
+		- all nodes are visited
+		- launches a new kernel for every iteration
+	- data-driven
+		- shared software worklist (SWWL) accessed to determine which nodes to operate on
+		- one kernel launched at the start, refilled as necessary with each iteration
+		- more efficient (avoids useless work)
+		- requires large SWWL; prone to memory contention/access irregularity
+		- limitations render approach impractical unless aggressive software optimizations
+		- can beat topo-driven with sufficient optimizations, but still not ideal
+- benchmarks of interest are all graph-based
+	- BFS, Barnes-Hut N-body simulation, MST, single-source shortest-path
+- data-driven optimizations
+	- four categories
+		- reducing memory contention on pulls
+		- reducing memory contention on pushes
+		- better load balancing
+		- increasing work efficiency
+	- double-buffering
+		- simplest
+		- reduces contention, but sacrifices parallelism
+	- work chunking, atomic-reduced updates
+		- reduces contention on pushes
+	- work donating
+		- improves balancing when using double-buffering
+	- variable kernel configuration
+		- adjusts number of threads spawned by each kernel based on # active nodes in the WL
+- goal: remedy weaknesses of SWWL, maintain benefits of data-driven
+	- two worst weaknesses: push contention, poor load balancing
+- HW changes
+	- HWWL: distributed per-lane lrw SRAM banks (FIFO queues)
+	- modify ISA to make HWWL available to programmer
+- HWWL work redistribution
+	- empty (waiting) banks pull from others instead of exiting; all exit when no more work
+	- two policies
+		- interval-based: redistribution periodically at sampling interval
+			- better load balancing, more energy cost
+			- focus of paper
+		- on-demand: redistribution on pull/push
+			- worse balancing, better energy
+	- per-core redistribution units (WRU) connected by inter-core redistribution network (ICRN)
+		- cores try to redistribute within themselves before pushing/pulling from another core
+	- three redistribution schemes
+		- threshold-based: greedy banks donate to needy banks
+		- local sorting-based: each HWWL bank tells the WRU how much work it has
+			- WRU sorts banks, redistributes as necessary
+		- global sorting-based: single WRU ranks banks across all cores
+			- unrealistic due to scalability issues
+- HWWL virtualization
+	- HWWL virtualization unit (HVU) spills and refills to in-mem overflow buffer
+- results
+	- HWWL vs SWWL
+		- up to 67% reduction in memory stalls, 16% reduction in dynamic instruction count
+		- performance: 1.2-2.4x increase over software-based implementation
+	- area overhead of HWWL banks: 2.5% of register file per core
