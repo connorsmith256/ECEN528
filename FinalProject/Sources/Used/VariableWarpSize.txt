@@ -16,7 +16,7 @@ Variable Warp Size (VWS)
 	- does not degrade performance in divergent applications
 		- less opportunity for mem convergence in the first place because fewer threads are participating in each mem access
 		- when it does occur, it results in more cache hits
-	- does effect convergent applications
+	- does affect convergent applications
 		- increases total # of mem accesses and cache misses
 - Variable Warp Sizing (VWS)
 	- minimum warp size set to 4
