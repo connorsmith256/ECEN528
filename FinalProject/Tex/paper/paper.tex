@@ -185,10 +185,27 @@ the warp schedulers from this pool.
 
 \section{Challenges of GPGPU} \label{sec:challenges}
 \subsection{Heterogeneous Applications}
-TODO Maximizing resource utilization while minimizing shared resource contention
-between CPU and GPU is hard
+There are two main challenges of GPGPU. The first is maintaining high
+performance on heterogeneous applications. As mentioned previously, this problem
+is difficult simply due to the complicated structure of these applications. When
+a warp stalls for one reason or another, the warp scheduler selects a new warp
+to take its place the next cycle. This is an attempt to hide the latency of warp
+stalls. However, GPU schedulers are limited in their ability to hide latencies
+for heterogeneous applications. This is caused by imbalanced workloads among
+warps, divergent branches, irregular memory accesses, and shared cache
+contention \cite{CoordinatedWarpScheduling}. Designs in the following section
+discusses these issues and present possible solutions.
+
 \subsection{Memory Limitations}
-TODO
+The second challenge for GPGPU is mitigating memory bandwidth bottlenecks. A
+majority of general-purpose applications run on GPUs are memory bound
+\cite{AssistWarps}, which means that performance is bottlenecked by off-chip
+memory bandwidth. This bottleneck is commonly due to contention among warps
+within the GPU, and may also be a result of contention with memory use by the
+CPU in heterogeneous system architectures
+\cite{ManagingConcurrencyInHeterogeneous}. A number of schemes have been
+suggested to reduce pressure on off-chip memory and will be visited in the next
+section.
 
 \section{New Designs} \label{sec:research}
 \begin{itemize}
