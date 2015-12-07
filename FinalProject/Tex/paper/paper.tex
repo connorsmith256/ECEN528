@@ -34,28 +34,40 @@
 % Document starts
 \begin{document}
 
+\newcommand{\titleName}{General-Purpose GPUs and the Challenges of Efficient
+Parallel Processing of Heterogeneous Applications}
+
 % Page heads
-\markboth{C. Smith}{TODO A Survey Paper}
+\markboth{C. Smith}{\titleName{}}
 
 % Title portion
-\title{TODO A Survey Paper}
+\title{\titleName{}}
 \author{Connor Smith
 \affil{Brigham Young University}}
 
 \begin{abstract}
-This is my abstract.
+TODO This is my abstract. It has many pretty lorem ipsum words. Lorem ipsum
+dolor sit amet, consectetur adipiscing elit. Aliquam nec est at nibh tempus
+malesuada. Proin eget risus ut arcu imperdiet porttitor nec maximus est. Ut
+vulputate gravida arcu vitae molestie. Vivamus tempor semper erat in
+condimentum. Vestibulum tincidunt pulvinar dolor, sit amet tincidunt sem
+sollicitudin et. Donec ut ultricies nulla, fringilla gravida neque. Sed feugiat
+mauris eu enim ultricies, id tincidunt velit semper. Curabitur blandit diam
+odio, in mollis risus porttitor eget. Vivamus rutrum enim turpis, eu posuere
+nibh mattis porttitor. Aenean mollis augue nec semper porta. Nulla semper vitae
+sapien quis commodo. Mauris tempor libero sollicitudin cursus lacinia.
 \end{abstract}
 
-\keywords{TODO, General purpose graphics processing unit, heterogeneous systems,
-warp size}
+\keywords{General purpose graphics processing unit, heterogeneous systems, warp
+size, dynamic warp, GPU compression, hardware worklists, locality aware mapping}
 
-\acmformat{Connor Smith, 2015. TODO A Survey Paper.}
+\acmformat{\titleName{}.}
 
 \begin{bottomstuff}
-This work is supported by the National Imaginary Science Foundation, under
-grant CNS-0123456.
+This work is supported by the National Imaginary Science Foundation, under grant
+CNS-0123456.
 
-Author's addresses: C. Smith, Electrical and Computer Engineering Department,
+Author's address: C. Smith, Electrical and Computer Engineering Department,
 Brigham Young University.
 \end{bottomstuff}
 
@@ -109,21 +121,31 @@ Maximizing resource utilization while minimizing shared resource contention betw
 TODO
 
 \section{New Designs}
-Warp compression stuff
-  Assist warps (CABA)
-  Warped Compression
-Dynamic tuning
-  Coordinated warp scheduling (CAWA)
-  Dynamic Thread Block Launch (DTBL)
-  Equalizer
-  Fine-grain Hardware Worklists (HWWL)
-  Variable Warp Size (VWS)
-CPU/GPU contention, NoC
-  Managing Concurrency in Heterogeneous
-Compiler/SW-only design
-  Divergence Management
-  Locality Aware Mapping
-  (x) WeakBehaviorProgrammingAssumptions
+\begin{itemize}
+\item Warp compression stuff
+  \begin{itemize}
+  \item Assist warps (CABA)
+  \item Warped Compression
+  \end{itemize}
+\item Dynamic tuning
+  \begin{itemize}
+  \item Coordinated warp scheduling (CAWA)
+  \item Dynamic Thread Block Launch (DTBL)
+  \item Equalizer
+  \item Fine-grain Hardware Worklists (HWWL)
+  \item Variable Warp Size (VWS)
+  \end{itemize}
+\item CPU/GPU contention, NoC
+  \begin{itemize}
+  \item Managing Concurrency in Heterogeneous
+  \end{itemize}
+\item Compiler/SW-only design
+  \begin{itemize}
+  \item Divergence Management
+  \item Locality Aware Mapping
+  \item (x) WeakBehaviorProgrammingAssumptions
+  \end{itemize}
+\end{itemize}
 
 \section{Conclusions}
 \begin{itemize}
@@ -140,7 +162,8 @@ Compiler/SW-only design
 
 % Acknowledgments
 \begin{acks}
-TODO The author would like to thank Dr. Penry for teaching this course and providing extensive design and learning opportunities.
+TODO The author would like to thank Dr. Penry for teaching this course and
+providing extensive design and learning opportunities.
 \end{acks}
 
 % % Bibliography
