@@ -3,6 +3,7 @@ CAWA: Criticality-aware warp acceleration
 - GPUs hide latency by swapping out stalled warps, but it's not good enough
 - latency hiding limited by
 	- imbalanced workloads in parallel warps
+	- diverging branch behavior
 	- irregular memory access patterns
 	- shared cache contention
 - "critical warp": slowest warp that must be executed before others
