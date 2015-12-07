@@ -122,30 +122,33 @@ concludes the survey.
 % TODO
 
 \section{Architectural Overview} \label{sec:architecture}
-\subsection{NVidia Warps}
-TODO
-Multiple threads are grouped together in "warps"
-Thread within a warp are mapped to a vector functional unit (SIMD)
-NVIDIA's Maxwell GPUs support up to 64 concurrent warps (2048 threads)
-Talk about what a streaming multiprocessor is
+\subsection{Streaming Multiprocessors}
 Modern unified GPUs consist of multiple streaming multiprocessors (SMs)
-  - warp (NVIDIA)/wavefronts (OpenCL)
-  - similar to a SIMD processor
-  - SM has a warp pool to store context of all running threads
-  - HW warp scheduler dispatches and allocates resources
-  - large (much larger than a CPU) register file shared across all threads
-    - Maxwell architecture has 64K 32-bit registers for each SM
-  - kernel: large number of threads executing same piece of code
-  - multiple threads form a thread-block; same life-cycle, dispatched together
-  - threads within a thread-block (32 or 64) organized into warps
-  - warp scheduler schedules a ready warp each cycle, hiding latency of stalled warps
-  - CPU launches GPU kernels by dispatching launch commands. Kernel parameters are passed from GPU to CPU at launch time and stored in GPU global memory
-  - kernels from different streams are independent and can be run concurrently, but kernels within a stream are sequential
-  - see DTBL paper for good intro
-  - also see Locality Aware paper for internals of a SM
-  - cooperative thread array (CTA) - see Weak behavior paper
+\begin{itemize}
+  \item warp (NVIDIA)/wavefronts (OpenCL)
+  \item similar to a SIMD processor
+  \item SM has a warp pool to store context of all running threads
+  \item HW warp scheduler dispatches and allocates resources
+  \item large (much larger than a CPU) register file shared across all threads
+    \item Maxwell architecture has 64K 32-bit registers for each SM
+  \item kernel: large number of threads executing same piece of code
+  \item multiple threads form a thread-block; same life-cycle, dispatched together
+  \item threads within a thread-block (32 or 64) organized into warps
+  \item warp scheduler schedules a ready warp each cycle, hiding latency of stalled warps
+  \item CPU launches GPU kernels by dispatching launch commands. Kernel parameters are passed from GPU to CPU at launch time and stored in GPU global memory
+  \item kernels from different streams are independent and can be run concurrently, but kernels within a stream are sequential
+  \item see DTBL paper for good intro
+  \item also see Locality Aware paper for internals of a SM
+  \item cooperative thread array (CTA) - see Weak behavior paper
+\end{itemize}
+\subsection{NVIDIA Warps}
+\begin{itemize}
+  \item Multiple threads are grouped together in ``warps''
+  \item Thread within a warp are mapped to a vector functional unit (SIMD)
+  \item NVIDIA's Maxwell GPUs support up to 64 concurrent warps (2048 threads)
+\end{itemize}
 
-\section{Challenges} \label{sec:challenges}
+\section{Challenges of GPGPU} \label{sec:challenges}
 \subsection{Heterogeneous Applications}
 TODO
 Maximizing resource utilization while minimizing shared resource contention between CPU and GPU is hard
