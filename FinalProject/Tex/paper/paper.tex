@@ -112,17 +112,11 @@ strain the memory bandwidth past the GPU's ability to hide latency.
 The remainder of this survey is organized as follows. Section
 \ref{sec:architecture} provides a brief architectural overview of GPUs. Section
 \ref{sec:challenges} elaborates on the challenges specific to GPGPU
-applications. Section \ref{sec:research} summarizes and discusses several
-current areas of research related to GPGPU. Section \ref{sec:conclusions}
-concludes the survey.
-
-% \section{Background}
-% \subsection{GPU History}
-% TODO
-% \subsection{GPGPUs and Current State}
-% TODO
-% \subsection{Applications}
-% TODO
+applications. Section \ref{sec:dynamic} discusses various dynamic approaches to
+scheduling and warp configurations. Section \ref{sec:memory} talks specifically
+about reducing memory contention. Section \ref{sec:software} is a discussion of
+a few software and compiler solutions to the challenges of GPGPU. Section
+\ref{sec:conclusions} concludes the survey.
 
 \section{Architectural Overview} \label{sec:architecture}
 \subsection{Streaming Multiprocessors}
@@ -207,21 +201,33 @@ CPU in heterogeneous system architectures
 suggested to reduce pressure on off-chip memory and will be visited in the next
 section.
 
-\section{Current Research and Novel Designs} \label{sec:research}
-\subsection{Dynamic Warp Scheduling and Hardware Tuning}
-\subsubsection{Assist warps (CABA)}
-\subsubsection{Coordinated warp scheduling (CAWA)}
-\subsubsection{Dynamic Thread Block Launch (DTBL)}
-\subsubsection{Equalizer}
-\subsubsection{Fine-grain Hardware Worklists (HWWL)}
-\subsubsection{Variable Warp Size (VWS)}
-\subsection{Reducing Memory Contention}
-\subsubsection{Warped Compression}
-\subsubsection{Managing Concurrency in Heterogeneous (CPU/GPU NoC contention)}
-\subsection{Compiler/SW-only design}
-\subsubsection{Divergence Management}
-\subsubsection{Locality Aware Mapping}
-\subsubsection{(x) WeakBehaviorProgrammingAssumptions}
+\section{Dynamic Warp Scheduling and Hardware Tuning} \label{sec:dynamic}
+\subsection{Assist warps (CABA)}
+This section left as an exercise to the reader
+\subsection{Coordinated warp scheduling (CAWA)}
+This section left as an exercise to the reader
+\subsection{Dynamic Thread Block Launch (DTBL)}
+This section left as an exercise to the reader
+\subsection{Equalizer}
+This section left as an exercise to the reader
+\subsection{Fine-grain Hardware Worklists (HWWL)}
+This section left as an exercise to the reader
+\subsection{Variable Warp Size (VWS)}
+This section left as an exercise to the reader
+
+\section{Reducing Memory Contention} \label{sec:memory}
+\subsection{Warped Compression}
+This section left as an exercise to the reader
+\subsection{Managing Concurrency in Heterogeneous (CPU/GPU NoC contention)}
+This section left as an exercise to the reader
+
+\section{Compiler/SW-only design} \label{sec:software}
+\subsection{Divergence Management}
+This section left as an exercise to the reader
+\subsection{Locality Aware Mapping}
+This section left as an exercise to the reader
+\subsection{(x) WeakBehaviorProgrammingAssumptions}
+This section left as an exercise to the reader
 
 \section{Conclusions} \label{sec:conclusions}
 \begin{itemize}
