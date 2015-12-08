@@ -672,17 +672,29 @@ importance of CPU and GPU computation. CM-CPU ranges from 0.875x-1.25x overall
 speedup, which CM-BAL yields a more balanced 1.05x-1.1x.
 
 \section{Conclusions} \label{sec:conclusions}
-\begin{itemize}
-\item Mention what the survey talked about
-  \begin{itemize}
-  \item Background
-  \item Overview
-  \item Challenges
-  \item Designs
-  \end{itemize}
-\item Explain changes occurring in field
-\item Talk about what the future could hold
-\end{itemize}
+This survey article gave a brief overview of GPU architecture, general-purpose
+computing on GPUs and the corresponding challenges, and current areas of
+research in GPGPU.
+
+GPGPU is a relatively young field but grows more popular each year. The main
+struggles with GPGPU are maintaining high utilization of resources in the face
+of complicated applications that are not easily mapped to GPU architectures
+while keeping contention of other resources, especially those related to memory.
+High memory pressure prevents GPUs from hiding memory latency and seriously
+degrades performance.
+
+Techniques within GPGPU continue to be developed focusing on a number of
+different areas. While this survey has only scratched the surface, it has
+provided a glimpse into current efforts to dynamically create helper warps and
+thread-blocks, dynamically schedule warps and adjust the state of the SMs on the
+fly, and use better compiler techniques to avoid divergence and produce better
+mappings to GPU architectures. A couple other novel research areas such as data
+compression and reducing memory contention were also discussed.
+
+GPUs may have started out as specialized hardware for rendering graphics, but
+they have begun to be used on much more diverse problems. If the challenges of
+GPGPU can be overcome, significant performance improvements across a wide range
+of applications could be unlocked.
 
 % Acknowledgments
 \begin{acks}
