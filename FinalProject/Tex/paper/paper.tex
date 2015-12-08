@@ -129,7 +129,7 @@ based off of NVIDIA's Maxwell architecture, which was released in 2014. These
 SMs are similar to SIMD processors and typically contain the following
 components:
 \begin{description}
-  \setlength\itemsep{1em}
+  \setlength\itemsep{0.5em}
   \item[A large register file] The register file is shared across all threads
   and typically contains thousands of registers, many more than are usually
   found in a CPU. NVIDIA's Maxwell architecture has 64K 32-bit registers in each
@@ -262,24 +262,25 @@ memory by storing pending child kernels.
 
 The problems with existing implementations boil down to four characteristics:
 \begin{description}
-\item [High kernel density] Kernel launches are expensive, and typical
-applications currently require many kernels. For example, a typical breadth-
-first search requires about 3,000 device kernel launches, resulting in a high
-overhead and memory footprint.
-\item [Low compute intensity] While many kernels are launched using these
-methods, they are usually fine-grained and do not contain high amounts of
-parallelism. The average number of threads in these kernels is around 40, which
-is close to the warp size and could be better served by a more fine-grained
-approach.
-\item [Workload similarity] The operations performed by each dynamically
-launched kernel are usually similar, but contain different levels of parallelism
-due to differing configurations or data.
-\item [Low concurrency/scheduling efficiency] Due to the low compute intensity
-of the device kernels, multiple kernels should be able to execute in parallel.
-However, GPU architectures place limits on the number of different kernels that
-can execute concurrently, and since each kernel has a relatively small number of
-warps within it, the SMs are underutilized and struggle to hide memory
-latencies.
+  \setlength\itemsep{0.5em}
+  \item [High kernel density] Kernel launches are expensive, and typical
+  applications currently require many kernels. For example, a typical breadth-
+  first search requires about 3,000 device kernel launches, resulting in a high
+  overhead and memory footprint.
+  \item [Low compute intensity] While many kernels are launched using these
+  methods, they are usually fine-grained and do not contain high amounts of
+  parallelism. The average number of threads in these kernels is around 40, which
+  is close to the warp size and could be better served by a more fine-grained
+  approach.
+  \item [Workload similarity] The operations performed by each dynamically
+  launched kernel are usually similar, but contain different levels of parallelism
+  due to differing configurations or data.
+  \item [Low concurrency/scheduling efficiency] Due to the low compute intensity
+  of the device kernels, multiple kernels should be able to execute in parallel.
+  However, GPU architectures place limits on the number of different kernels that
+  can execute concurrently, and since each kernel has a relatively small number of
+  warps within it, the SMs are underutilized and struggle to hide memory
+  latencies.
 \end{description}
 
 DTBL is a more fine-grained approach. Instead of launching entire kernels,
@@ -314,6 +315,7 @@ warp is 45\% and can reach as high as 70\%.
 CAWA seeks to reduce the disparity among execution time in parallel warps using
 three components:
 \begin{description}
+  \setlength\itemsep{0.5em}
   \item[Dynamic warp criticality prediction] This predictor attempts to identify
   the critical warp that is used in the next two components. This is
   accomplished by using a per-warp criticality counter, which is based on the
@@ -478,22 +480,196 @@ additional hardware needed to implement Equalizer. In performance mode, an
 overall 22\% performance boost was measured, while also saving 6\% energy. The
 efficient mode saved 15\% energy and resulted in a 5\% performance boost.
 
-\section{Reducing Memory Contention} \label{sec:memory}
-\subsection{Warped Compression}
-This section left as an exercise to the reader
-
-\subsection{Managing Concurrency in Heterogeneous (CPU/GPU NoC contention)}
-This section left as an exercise to the reader
-
-\section{Compiler/SW-only design} \label{sec:software}
+\section{Compiler and Software Techniques} \label{sec:software}
 \subsection{Divergence Management}
-This section left as an exercise to the reader
+We have seen that complex control flow leads to divergent branches and as a
+result divergent warps. Vector machines commonly handle this divergence
+explicitly by using predication registers to conditionally execute statements.
+Intel MIC accelerators, Cray-1 vector processors, and even AMD GPUs operate this
+way \cite{DivergenceManagment}. However, NVIDIA GPUs manage divergence
+implicitly. The GPU chooses one path and defers the execution of the other by
+pushing the current PC and a thread mask onto the ``divergence stack.''
+Reconvergence is then handled by popping off of the stack. This structure allows
+for correct nesting of divergence and reconvergence. NVIDIA also allows for
+software management of divergence using predicate registers and ``consensual
+branches.'' These branches are only taken if all the threads within the current
+warp have the same predication value. However, this functionality used very
+limitedly, only when heuristics indicate a potential performance boost.
+
+Compiler-driven approaches to divergence management exist for vector-style
+architectures, but the problem is different when applied to GPUs. Traditional
+compiler algorithms for predication are thread-agnostic, since they only
+optimize control flow for a single thread. Data-parallel architectures such as
+those in GPUs, on the other hand, must be thread-aware. One such set of
+algorithms has been developed \cite{DivergenceManagment}.
+
+These compiler algorithms remove control flow by linearizing execution paths.
+This is done by first constructing thread-aware control dependence graphs
+(CDGs). Predicate nodes are inserted between dependent basic blocks. The CDGs
+are augmented by the compiler by adding three kinds of runtime masks: loop masks
+track which threads are still executing; continue masks track which threads are
+in a current iteration; and exit masks track which threads exited by specific
+exit blocks. It is important to note that the resulting CDG is still valid for
+processing, so later compiler passes can continue to process cyclic regions.
+
+The algorithms also perform a few optimizations. If a branch condition is
+determined to be thread-invariant, the branch is replaced with a consensual
+branch and the predication is removed. This removes unnecessary work and
+lightens register pressure. Branch conditions that cannot be proven thread
+invariant have dynamic predicate uniformity tests inserted.
+
+To linearize the control flow, loops are analyzed with structural analysis.
+After the analysis has determined control flow, the direction of the edges in
+the CFG are reversed, and the CFG is processed in a depth-first post- order
+traversal. This yields a valid schedule.
+
+Applying these algorithms results in code that is 2.7\% slower on average, with
+little to no area, power, or energy implications. The main motivation for this
+approach is that is allows for less hardware design complexity and verification
+costs. From the programmer's point of view, there is no difference. In addition,
+using divergence stack control sometimes results in nondeterministic order of
+execution. Using the variance analysis in this approach allows the compiler to
+make stronger guarantees at compile time.
 
 \subsection{Locality Aware Mapping}
-This section left as an exercise to the reader
+GPUs are good at exploiting simple parallelism, and high-level language
+extensions have been developed to make writing parallel programs easier, but
+nested parallelism is still quite difficult to manage. There are multiple
+strategies for mapping nested patterns onto GPUs, but they all perform poorly
+under certain circumstances. Three such mappings are:
+\begin{description}
+  \setlength\itemsep{0.5em}
+  \item[1D mapping] Only parallelize the outer loop
+  \item[Thread-block/thread mapping]assign each iteration of the outer pattern
+  to a thread block and parallelize the inner pattern by threads within the
+  block
+  \item[Warp-based mapping] assign each iteration of the outer pattern to a warp
+  and inner iterations to threads within a warp
+\end{description}
+None of these approaches is optimal across all applications. Instead, a
+generalized mapping with strong support for nested mapping is needed. One such
+approach has been developed \cite{LocalityAwareMappingOfNestedParallelPatterns}.
 
-\subsection{(x) WeakBehaviorProgrammingAssumptions}
-This section left as an exercise to the reader
+This locality-aware mapping has its own intermediate representation (IR) that
+allows simple nesting of parallel patterns. These mappings contain three
+parameters: dimension, a dimension for each nest level; block size, the number
+of threads in a given block; and degree of parallelism (DOP), the number of
+parallel computations enabled by the mapping. Analysis of these mappings is
+flexible and not limited to one or two levels like the other mappings mentioned
+above.
+
+Two orthogonal categories are used to evaluate the strength of these mappings:
+local vs. global and hard vs. soft. Local constraints are applied to a specific
+pattern, such as having sequential accesses map to the fastest varying
+dimension. Global constraints consider multiple patterns together. Hard
+constraints must be satisfied to ensure correct execution, such as a limit on
+the number of threads within a block. Soft constraints provide performance
+hints, but can be violated if necessary. An example of a soft limit is avoiding
+thread divergence. Using these constraints, mappings are ranked, and the most
+efficient is chosen. Only candidates that meet hard constraints are considered,
+and ties are broken in favor of higher DOP.
+
+The most efficient mapping is then used to generate CUDA code. A few
+optimizations can be applied to this generation, such as preallocating memory
+before kernel launch if all loop iterations have a constant size allocation.
+Another optimization uses prefetching for multiple loop iterations when loops
+are imperfectly nested.
+
+The efficiency of these mappings varies depending on the application. For simple
+nested patterns, the generated code is 20\% slower than manually-optimized using
+the 1D mapping. However, using the fixed 2D strategies mentioned are 1.5-9.6x
+slower than the multi-dimensional mappings. On real-world applications, these
+custom mappings are 1.18x-4.38x faster than running on an 8-core CPU and
+4.5x-8.95x faster than using a 1D mapping.
+
+\section{Other Research} \label{sec:memory}
+\subsection{Warp Data Compression}
+To increase the breadth of this survey, two additional topics are discussed that
+do not fit well in the categories so far. The first is compression and
+decompression of register file accesses on a warp level. GPU register files
+contribute up to 15\% of the total GPU chip power, so there are significant
+savings available if the register file can be made more power efficient. One
+past approach has been turning off unused parts of the register file. This saves
+both leakage and dynamic power. Another approach takes advantage of register use
+locality with register file caches.
+
+The technique discussed here is compressing at the warp level
+\cite{WarpCompression}. Some GPU architectures already use data compression. For
+example, NVIDIA's Maxwell architecture claims to improve effective bandwidth by
+25\% using a compression scheme. For these applications, compression schemes
+should satisfy two conditions: the data should have a high compression ratio
+using the selected scheme, and the latency of compressing/decompressing should
+be short. In the past, most schemes have focused on the L2 or last level cache
+to avoid latency issues.
+
+To compress the values used in warps, value similarity is key. This is the
+arithmetic distance between register values. Values across threads in a warp are
+typically similar, since data arrays are commonly accessed using the thread IDs
+of successive threads, and the dynamic range of input data is small for many
+things. Power can be saved by avoiding the repeated storing, reading, and
+writing of redundant data. Distances between successive thread registers are
+calculated and placed into one of four bins: zero distance, which means the two
+values are the same; 128 bin, where the values differ by at most 128; 32K bin,
+where they differ by at most 32K, and the random bin, which holds all values
+that do not fall into any of the first three.
+
+Keeping in mind the trade-off of compression ratio vs latency, the base-delta-
+immediate (BDI) scheme is most suitable warp compression. This scheme uses a
+base value, and subsequent deltas are added to the base to determine each
+subsequent value. Computed values are compressed before writing to the register
+file and decompressed before reading. Since most warp instructions have two
+sources and one destination, it makes sense to have two decompression units and
+a single compression unit to process one warp per cycle. Since modern GPU
+architectures can process two warps per cycle, the number of each of these is
+doubled, for a total of four decompression units and two compression units.
+
+The results of this compression scheme are promising. The area overhead is only
+0.3\% of the total SM size, and an overall 25\% power reduction (35\% dynamic,
+10\% static) is achieved in the register file. While added pipeline stages for
+compression and decompression add time, the total performance loss is only
+0.1\%. Warp compression is clearly a promising technique for reducing power in
+the massive register files of GPUs.
+
+\subsection{Memory Contention in Heterogeneous Multiprocessing Systems}
+Modern computing system architectures include both a CPU and GPU in a master-
+slave configuration, in which the CPU offloads heavy parallel computations to
+the GPU. In the future, there will likely be many CPUs and GPUs operating in
+conjunction within a single system. These network-on-chip (NoC) configurations
+are called heterogeneous multiprocessing architectures
+\cite{ManagingConcurrencyInHeterogeneous}.
+
+CPU applications tend to be more latency sensitive, while GPU applications are
+more bandwidth sensitive. In such heterogeneous architectures containing both,
+GPUs tend to cannibalize the performance of CPUs much more than the other way
+around. The goal of the technique described here is to prevent this
+cannibalization and improve the performance of both kinds of computation. This
+technique assumes a tile-based mesh architecture consisting of both CPUs and
+GPUs. The CPU to GPU ratio is 2:1 because a single GPU SM occupies roughly half
+the space of a CPU core. The last level cache of the system is shared by CPUs
+and GPUs, and they use a shared network and shared memory channels.
+
+GPU concurrency can have a positive or negative effect on other GPU performance.
+Increasing the number of concurrent warps can help performance but can also
+thrash the cache or cause memory congestion. The effects of GPU concurrency on
+CPU performance, however, are much more negative. Memory congestion hurts CPUs
+much more than GPUs, as they do not have enough thread-level parallelism to hide
+the latency.
+
+Two schemes are presented to keep GPUs from monopolizing the resources of the
+shared system. The first is CPU-Centric Concurrency Management (CM-CPU). This
+scheme dynamically monitors congestion and modulates the number of active warps
+on GPUs in steps of two. The second scheme is Balanced Concurrency Management
+(CM-BAL), which detects if GPUs do not have enough latency tolerance, and
+increases the number of active warps to hide it. The goal of this scheme is to
+recover performance lost from the first scheme.
+
+These approaches only require 16 bytes of overhead for the GPU core, 3 bytes per
+memory partition, and 8 bytes for the thread-block scheduler. CM-CPU resulted in
+an 11\% average GPU performance loss and a 24\% CPU performance increase. CM-BAL
+resulted in a 7\% loss in GPU performance and a 7\% gain in CPU performance.
+Overall speedup of the system depends on the type of application and relative
+importance of CPU and GPU computation. CM-CPU ranges from 0.875x-1.25x overall
+speedup, which CM-BAL yields a more balanced 1.05x-1.1x.
 
 \section{Conclusions} \label{sec:conclusions}
 \begin{itemize}
