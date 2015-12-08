@@ -297,16 +297,186 @@ original GPU implementations and 1.40x over implementations using existing
 device-kernel launches.
 
 \section{Dynamic Scheduling} \label{sec:scheduling}
-\subsection{Coordinated warp scheduling (CAWA)}
+\subsection{Critical Warps}
+GPUs manage to hide latency by swapping out stalled warps, but current
+performance is not good enough. This latency hiding is limited by the following
+characteristics of heterogeneous applications: imbalanced workloads in parallel
+warps, diverging branch behavior, irregular memory access patterns, and shared
+cache contention \cite{CoordinatedWarpScheduling}. These imbalances and
+irregularities result in differences in execution time of parallel warps. The
+slowest warp in a group is called the ``critical'' Since warps are blocked for
+synchronization purposes until all of them are finished, this needlessly extends
+the life of all the other warps and limits the performance of the application as
+a whole. The authors of Criticality-aware warp acceleration (CAWA) demonstrate
+that the average difference in execution time between the fastest and slowest
+warp is 45\% and can reach as high as 70\%.
 
-\subsection{Variable Warp Size (VWS)}
-This section left as an exercise to the reader
+CAWA seeks to reduce the disparity among execution time in parallel warps using
+three components:
+\begin{description}
+  \item[Dynamic warp criticality prediction] This predictor attempts to identify
+  the critical warp that is used in the next two components. This is
+  accomplished by using a per-warp criticality counter, which is based on the
+  degree of instruction count disparity, a measure of how much diverging
+  branches differ, as well as the number of stall cycles between two consecutive
+  instructions. These two values are combined into a single criticality counter.
+  \item[A greedy criticality-aware warp scheduler] This scheduler is built on
+  top of the two existing warp scheduling policies, and gives more time to
+  critical warps (based on the criticality counter described above). Ties are
+  broken by the age of the warp, giving priority to older warps.
+  \item[Criticality-aware cache prioritization] This scheme prioritizes cache
+  accesses. It reserves a fixed number of L1 data cache ways for critical warps.
+  The best number of ways to reserve was determined by experimental analysis and
+  found to be 8 out of 16. The cache prioritization also uses a signature-based
+  hit predictor to predict whether a given cache line belongs to the critical
+  warp.
+\end{description}
 
-\subsection{Fine-grain Hardware Worklists (HWWL)}
-This section left as an exercise to the reader
+Using an oracle to identify the critical warp could yield a 21\% performance
+improvement on average. The use of CAWA resulted in an average improvement of
+9.2\% across all applications. Applications that are more sensitive to
+scheduling policies and cache accesses saw a 23\% improvement in performance.
+The accuracy of the critical warp identifier was also measured. It successfully
+identified the critical warp as a slow warp 73\% of the time, where slow warp
+here means it is in the slower half.
 
-\subsection{Equalizer}
-This section left as an exercise to the reader
+\subsection{Variable Warp Size}
+While some of the past sections have discussed added new execution objects to
+perform work, this technique pertains to splitting and re-merging existing
+warps. There are two types of divergence in GPU execution: control flow
+divergence and memory divergence. The former deals with complex control flow in
+large warps resulting in performance loss, while the latter is related to how
+well memory requests are coalesced into single warps. When warps are too small,
+horizontal locality of memory accesses is lost; this effect is termed ``memory
+convergence slip.''
+
+In addition, workloads can be classified into three groups depending on how
+their performance is affected by warp size. Divergent warps perform poorly as
+warp size increases, due to control flow divergence as explained above. Warp-
+size insensitive warps see little to no performance changes with warp size.
+Convergent warps actually see better performance as warp size increases, due to
+coalescing execution and memory accesses into a single warp. Increasing warp
+size is better for the latter two types, since larger warps have better energy
+efficiency.
+
+Recent applications are increasingly divergent
+\cite{VariableWarpSize}: raytracing, molecular dynamics simulations, game
+physics simulations, and graph processing are all common applications for GPGPU
+and all contain many divergent warps. To combat this, warp sizes can be adjusted
+dynamically. A minimum of 4 is a good floor value, since graphics workloads
+commonly process ``quads'' (threads in groups of 4) and there are diminishing
+returns for warp sizes any smaller than this. This technique works by splitting
+the traditional datapath into 8 slices, where each slice can fetch, decode, and
+issue independently. Slices are statically assigned threads in a linear fashion
+(0-3 to slice 0, 4-7 to slice 1, etc.), and threads cannot move between slices.
+
+Allowing for variable warp sizes does not alter the register file and requires
+no changes to memory. A warp ganging unit is added that fetches and decodes once
+for all the warps in a gang. The gang issue scheduler enforces lock-step
+execution of all the slices within a gang. Independent warps can be added to
+fill holes in gangs, and gangs can be split and reformed. Fetching and issuing
+gives priority to gangs to ensure the maximum level of lockstep.
+
+The authors of this technique varied gang scheduling policies, reformation
+policies, splitting policies, and size. They found that inelastic variable warp
+sizing, in which gangs are split based on their control path and are never
+merged back together, had the best performance. They measured a 35\% increase in
+performance on a 32-wide machine, using 8-wide warps, at the cost of only 2.5\%
+area.
+
+\subsection{Hardware Worklists}
+There are two common approaches to mapping graph algorithms to GPUs. The first
+is topology-driven, in which the current thread index is used to determine on
+which nodes to operate. This approach launches a new kernel for every iteration
+and visits all nodes. Since launching kernels is expensive and some or many
+nodes do not have any useful work to do in a given iteration, this results in
+inefficiencies. The other approach is data-driven, where shared software
+worklists (SWWL) are used to determine which nodes have useful work for a given
+iteration. Only one kernel is launched at the start, and it is refilled with
+work as necessary each iteration. This approach avoids all of the useless work
+found in the topology-driven method, but can require a very large worklist,
+which makes it prone to memory contention or access irregularity. Because of
+this drawback, data-driven mapping is impractical unless aggressive software
+optimizations are made.
+
+There are four weaknesses that data-driven optimizations attempt to improve:
+memory contention on pulls, contention on pushes, load balancing, and work
+efficiency. Double-buffering is the simplest optimization and reduces memory
+contention by partitioning the worklist push and pull sections. Work chunking
+reduces push contention by grouping multiple pushes into one operation,
+amortizing the cost. Work donating works by donating excess work to other
+threads within the same block, improving load balance. Variable kernel
+configuration adjusts the number of threads spawned by a kernel call based on
+the number of active nodes in the worklist.
+
+Even with such optimizations, the data-driven approach is not ideal due to
+remaining memory contention on pushes and poor load balancing. Using fine-
+grained hardware worklists (HWWL) instead of software worklists is one method of
+dealing with such drawbacks
+\cite{UsingFineGrainHardwareWorklists}. This works by exposing the HWWL to the
+software through simple additions to the ISA. This way an application utilizing
+a SWWL can be easily adapted to use a HWWL. The microarchitecture of the GPU is
+modified to support a HWWL, distributing work to each lane in the GPU. To enable
+better load balancing, empty banks pull from other banks instead of exiting.
+There are two policies for when to redistribute work: interval-based and on-
+demand. The former periodically redistributes work at a given sampling interval.
+This has the advantage of better load balancing, but a higher cost. The
+alternative, on- demand redistribution, only redistributes when a bank pulls or
+pushes. This saves energy but has poorer load balancing than the interval-based
+policy.
+
+In addition, there are three possible ways to redistribute the work. The first
+is threshold-based, where greedy (more full) banks donate to the needy (less
+full) banks. The second scheme is local sorting-based, in which each HWWL bank
+indicates how much work it has. A work redistribution unit (WRU) in each SM
+sorts its own banks and attempts to redistribute within itself. The global
+sorting-based scheme is similar to the second, but uses a single WRU for the
+entire GPU. This last approach is unrealistic due to scalability issues.
+
+The results of this technique are promising. When compared to the SWWL, the HWWL
+had a 67\% reduction in memory stalls and between a 1.2-2.4x increase in
+performance. The area overhead of the HWWL banks was 2.5\% of the register file
+core, which is a small price to pay.
+
+\subsection{Dynamic Frequency and Parallelism Adjustment}
+The last technique in this section deals with dynamically monitoring resource
+requirements and adjusting the SM frequency, memory frequency, and number of
+threads executing. A majority of GPU applications are bottlenecked by either a
+lack of compute resources, memory bandwidth, or a limited data cache, and so
+executing the maximum number of threads and the highest frequencies is not
+always beneficial to performance. If a given resource is bottle-necked, the
+other resources become underutilized. For example, the NVIDIA Fermi architecture
+has 48KB of data cache. When spread out over the maximum number of threads that
+can execute at the same time, this leaves only 30 bytes for each.
+
+If the characteristics of an application's workload were known before execution,
+the GPU could be tuned to execute the optimal number of threads at the optimal
+SM and DRAM frequencies. Unfortunately, this is often not possible: workloads
+are heavily dependent on the given application, its input, and the specific GPU.
+Equalizer \cite{EqualizerTuningOfResources} is a runtime system that runs on
+individual SMs, determines the resource requirements of kernels, and adjusts the
+number of executing threads and frequencies of the SM and memory.
+
+Equalizer determines the overall resource requirements of a kernel based on the
+status of the warps within the kernel. Warps are classified into one of four
+groups: active warps, which are not paused; warps that cannot be executed
+because they are waiting on operands from memory; warps ready to issue to the
+memory pipeline but that the Load/Store queue cannot accept this cycle; and
+warps ready to issue to the arithmetic pipeline, but cannot because the pipeline
+is saturated. Based off these classifications, Equalizer determines whether to
+adjust any of the three parameters once per ``epoch'' (end of each execution
+window). The number of thread blocks is only changed if it is appropriate to do
+so for three consecutive epochs. New voltage and frequency values are submitted
+to the Frequency Manager every epoch and adjusted if necessary. This manager
+uses one of three discrete settings, where the low and high settings represent a
+15\% reduction or increase, respectively. This model assumes a linear change in
+voltage with frequency.
+
+Equalizer operates in one of two modes: energy efficient or high performance.
+The authors found that there were insignificant area and energy overheads from
+additional hardware needed to implement Equalizer. In performance mode, an
+overall 22\% performance boost was measured, while also saving 6\% energy. The
+efficient mode saved 15\% energy and resulted in a 5\% performance boost.
 
 \section{Reducing Memory Contention} \label{sec:memory}
 \subsection{Warped Compression}
