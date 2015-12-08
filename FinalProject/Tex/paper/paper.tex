@@ -94,12 +94,12 @@ laptops, desktops to smartphones, although some of these do not use dedicated
 graphics cards. The area of GPGPU started to take off roughly a decade ago when
 it began to be practical to solve traditional problems with the massively
 parallel nature of GPUs. Using hundreds or even thousands of ``cores" to perform
-computations in parallel is tempting (even if the cores aren't really cores at
+computations in parallel is tempting (even if the cores are not really cores at
 all), but brings with it a new set of challenges.
 
 In a way, the problems of GPGPU are an extension of those sometimes seen in a
 traditional desktop multiprocessing system. Even when under a heavy compute
-load, it isn't always easy to keep all of the cores doing useful work in any
+load, it is not always easy to keep all of the cores doing useful work in any
 given cycle. Between limitations in structural units, dependences between
 instructions, and latencies of memory accesses, the processor cannot help but
 stall sometimes. This problem is exacerbated by orders of magnitude when solving
@@ -175,7 +175,7 @@ like a SIMD unit. With this in mind, it would be more accurate to simply call
 to refer to them as threads to maintain consistency with the literature. The
 term ``Warp'' is the term used by NVIDIA, while AMD and OpenCL use
 ``wavefront''. Maxwell supports up to 64 warps resident per SM. Note that this
-doesn't mean that all 64 warps are executing at the same time, but that the
+does not mean that all 64 warps are executing at the same time, but that the
 architecture can support that many warp contexts concurrently. The SM maintains
 a warp pool to store the context of all running threads. Warps are scheduled by
 the warp schedulers from this pool.
