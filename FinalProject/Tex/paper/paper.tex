@@ -57,11 +57,11 @@ Performing general-purpose computing on GPUs is a relatively recent development,
 having only become practical and popular in the past decade or so. A brief
 overview of a typical GPU architecture is presented, and the challenges of
 applying this architecture to heterogeneous problems are discussed. Several
-different current areas of research are explored, dynamic warp scheduling and
-hardware tuning, reducing memory contention, and software solutions to the
-challenges of GPGPU. While the challenges presented are difficult to overcome,
-general-purpose computing on GPUs continues to make progress in the areas of
-performance, energy, and power.
+different current areas of research are explored, including dynamic warp
+scheduling and hardware tuning, reducing memory contention, and software
+solutions to the challenges of GPGPU. While the challenges presented are
+difficult to overcome, general-purpose computing on GPUs continues to make
+progress in the areas of performance, energy, and power.
 \end{abstract}
 
 \keywords{General purpose graphics processing unit, heterogeneous systems, warp
@@ -99,8 +99,8 @@ all), but brings with it a new set of challenges.
 
 In a way, the problems of GPGPU are an extension of those sometimes seen in a
 traditional desktop multiprocessing system. Even when under a heavy compute
-load, it is not always easy to keep all of the cores doing useful work in any
-given cycle. Between limitations in structural units, dependences between
+load, it is not easy to keep all of the cores doing useful work in any given
+cycle. Between limitations in structural units, dependences between
 instructions, and latencies of memory accesses, the processor cannot help but
 stall sometimes. This problem is exacerbated by orders of magnitude when solving
 heterogeneous problems on a GPU. GPUs were originally designed to operate on
@@ -123,11 +123,12 @@ Section
 
 \section{Architectural Overview} \label{sec:architecture}
 \subsection{Streaming Multiprocessors}
-Modern unified GPUs consist of multiple streaming multiprocessors (SMs). While
-there are many GPU architectures available today, the following description is
-based off of NVIDIA's Maxwell architecture, which was released in 2014. These
-SMs are similar to SIMD processors and typically contain the following
-components:
+Modern unified GPUs consist of multiple streaming multiprocessors (SMs). Figure
+\ref{fig:baseline} shows a baseline GPU configuration
+\cite{DynamicThreadBlockLaunch}. While there are many GPU architectures
+available today, the following description is based off of NVIDIA's Maxwell
+architecture, which was released in 2014. These SMs are similar to SIMD
+processors and typically contain the following components:
 \begin{description}
   \setlength\itemsep{0.5em}
   \item[A large register file] The register file is shared across all threads
@@ -159,9 +160,9 @@ independent and can be run concurrently, but kernels within a stream are
 sequential.
 
 Grids are what actually run on the GPU, and they are composed of multiple
-``thread- blocks'', also called a cooperative thread array (CTA) outside of
-NVIDIA's nomenclature. Maxwell supports up to 64K blocks within a grid. Thread-
-blocks contain potentially many threads, on the order of 1024 for modern
+``thread-blocks'', also called a cooperative thread array (CTA) outside of
+NVIDIA's nomenclature. Maxwell supports up to 64K blocks within a grid.
+Thread-blocks contain potentially many threads, on the order of 1024 for modern
 architectures. Each thread within a thread-block has the same life-cycle as all
 the others, meaning that they are dispatched to and swapped from a SM at the
 same time.
@@ -170,15 +171,20 @@ Individual threads exist within a thread-block. These threads are grouped into
 ``warps'', usually around 32 at a time. The warp is the fundamental unit of
 execution on GPUs. Threads within a warp are mapped to a vector functional unit
 such that all threads execute the same instruction on different data, just a
-like a SIMD unit. With this in mind, it would be more accurate to simply call
+like a SIMD unit. With this in mind, it would be more accurate to call
 ``threads'' a sequence of SIMD lane instructions, but this survey will continue
 to refer to them as threads to maintain consistency with the literature. The
-term ``Warp'' is the term used by NVIDIA, while AMD and OpenCL use
+term ``warp'' is the term used by NVIDIA, while AMD and OpenCL use
 ``wavefront''. Maxwell supports up to 64 warps resident per SM. Note that this
 does not mean that all 64 warps are executing at the same time, but that the
 architecture can support that many warp contexts concurrently. The SM maintains
 a warp pool to store the context of all running threads. Warps are scheduled by
 the warp schedulers from this pool.
+
+\begin{figure}
+  \centering
+  \includegraphics[]{BaselineGPU.png} \caption{Test caption} \label{fig:baseline}
+\end{figure}
 
 \section{Challenges of GPGPU} \label{sec:challenges}
 \subsection{Heterogeneous Applications}
@@ -207,36 +213,35 @@ section.
 \section{Dynamically-Launched Helpers} \label{sec:dynamic}
 \subsection{Assist warps}
 As we have seen, GPUs are capable of supporting thousands of threads, but
-bottlenecks in heterogeneous applications limit performance. \cite{AssistWarps}
-present the idea of using ``assist warps'' in their Core-Assisted Bottleneck
-Acceleration (CABA) scheme. These special warps are generated by dedicated
-hardware and are used as helper threads to increase performance and efficiency.
-Assist warps share the same context as the parent warp and uses some of the
-available registers, since investigation shows that 24\% of the register file is
-unallocated on average.
+bottlenecks in heterogeneous applications limit performance. Core-Assisted
+Bottleneck Acceleration \cite{AssistWarps} is a scheme that uses ``assist
+warps.'' These special warps are generated by dedicated hardware and are used as
+helper threads to increase performance and efficiency. Assist warps share the
+same context as the parent warp and uses some of the available registers, since
+investigation shows that 24\% of the register file is unallocated on average.
 
 One primary use for assist warps is memory compression. Instead of using
 dedicated hardware for compressing and decompressing data from memory, this
 approach uses existing hardware that is not being utilized. Another advantage of
 not using dedicated hardware is the ability to change compression algorithms
 flexibly, since different applications have varying access patterns that are
-suited for different compression algorithms. Another use for assist warps is in
-memoization, in which frequently- computed values from main memory are cached
-and used as lookup tables, reducing the number of loads and stores required. One
+suited for different compression algorithms. Assist warps can also be used for
+memoization, in which frequently-computed values from main memory are cached and
+used as lookup tables, reducing the number of loads and stores required. One
 final use suggested by the authors is using an idle memory pipeline to prefetch
 values during computation to reduce the memory pressure.
 
-CABA contains a mix of hardware and software. While software-only or hardware-
-only options are possible, the former induces high overhead and complicates
-communication between primary and helper warps, and the latter makes having a
-flexible interface more difficult. The combination suggested by the authors
-dynamically inserts instructions into the execution stream in the form of assist
-warps. This requires stores of commonly used assist warps, a controller to
-trigger and manage assist warp execution, and an assist warp buffer inside the
-instruction buffer that holds triggered warps until they are scheduled. Helper
-threads share context with the parent warp, and register values in helper
-threads are not preserved between invocations, reducing the overhead of this
-technique and does not require any additional resources.
+CABA contains a mix of hardware and software. While software-only or
+hardware-only options are possible, the former induces high overhead and
+complicates communication between primary and helper warps, and the latter makes
+having a flexible interface more difficult. The combination suggested by the
+authors dynamically inserts instructions into the execution stream in the form
+of assist warps. This requires stores of commonly used assist warps, a
+controller to trigger and manage assist warp execution, and an assist warp
+buffer inside the instruction buffer that holds triggered warps until they are
+scheduled. Helper threads share context with the parent warp, and register
+values in helper threads are not preserved between invocations, reducing the
+overhead of this technique and does not require any additional resources.
 
 The authors report a reduction in memory bandwidth of 2.1x, resulting in an
 increase in performance of 41.7\%. This is only 2.8\% less than the idea case in
@@ -249,24 +254,24 @@ to pay for the performance increases.
 The authors of Dynamic Thread Block Launch (DTBL) suggest a somewhat similar
 approach, this time launching thread blocks dynamically instead of assist warps
 \cite{DynamicThreadBlockLaunch}. The motivation behind this technique is that
-while emerging general-purpose applications do not have simple, regular
+while emerging general-purpose applications do not have a simple, regular
 structure that is easy to exploit at the highest level, they still do contain
 ``pockets'' of parallelism at smaller levels. The authors explain that these
 pockets can be exploited with existing architecture using device-side nested
 kernel launching, but at a high cost. For example, CUDA supports parent kernels
 launching child kernels through device-side API calls. These child kernels can
 start at any time after being launched by their parent. This method does exploit
-pockets of parallelism, but at a high cost. On average, this CUDA method results
-in a 36.1\% decrease in performance, and also consumes significant amounts of
-memory by storing pending child kernels.
+pockets of parallelism, but this CUDA method results in an average of 36.1\%
+decrease in performance, and also consumes significant amounts of memory by
+storing pending child kernels.
 
-The problems with existing implementations boil down to four characteristics:
+The problems with existing implementations reduce down to four characteristics:
 \begin{description}
   \setlength\itemsep{0.5em}
   \item [High kernel density] Kernel launches are expensive, and typical
-  applications currently require many kernels. For example, a typical breadth-
-  first search requires about 3,000 device kernel launches, resulting in a high
-  overhead and memory footprint.
+  applications currently require many kernels. For example, a typical
+  breadth-first search requires about 3,000 device kernel launches, resulting in
+  a high overhead and memory footprint.
   \item [Low compute intensity] While many kernels are launched using these
   methods, they are usually fine-grained and do not contain high amounts of
   parallelism. The average number of threads in these kernels is around 40, which
@@ -305,12 +310,12 @@ characteristics of heterogeneous applications: imbalanced workloads in parallel
 warps, diverging branch behavior, irregular memory access patterns, and shared
 cache contention \cite{CoordinatedWarpScheduling}. These imbalances and
 irregularities result in differences in execution time of parallel warps. The
-slowest warp in a group is called the ``critical'' Since warps are blocked for
-synchronization purposes until all of them are finished, this needlessly extends
-the life of all the other warps and limits the performance of the application as
-a whole. The authors of Criticality-aware warp acceleration (CAWA) demonstrate
-that the average difference in execution time between the fastest and slowest
-warp is 45\% and can reach as high as 70\%.
+slowest warp in a group is called the ``critical'' warp. Since warps are blocked
+for synchronization purposes until all of them are finished, this needlessly
+extends the life of all the other warps and limits the performance of the
+application as a whole. The authors of Criticality-aware warp acceleration
+(CAWA) demonstrate that the average difference in execution time between the
+fastest and slowest warp is 45\% and can reach as high as 70\%.
 
 CAWA seeks to reduce the disparity among execution time in parallel warps using
 three components:
@@ -344,33 +349,33 @@ here means it is in the slower half.
 
 \subsection{Variable Warp Size}
 While some of the past sections have discussed added new execution objects to
-perform work, this technique pertains to splitting and re-merging existing
-warps. There are two types of divergence in GPU execution: control flow
-divergence and memory divergence. The former deals with complex control flow in
-large warps resulting in performance loss, while the latter is related to how
-well memory requests are coalesced into single warps. When warps are too small,
-horizontal locality of memory accesses is lost; this effect is termed ``memory
-convergence slip.''
+perform work, this technique pertains to splitting and re-merging existing warps
+\cite{VariableWarpSize}. There are two types of divergence in GPU execution:
+control flow divergence and memory divergence. The former deals with complex
+control flow in large warps resulting in performance loss, while the latter is
+related to how well memory requests are coalesced into single warps. When warps
+are too small, horizontal locality of memory accesses is lost; this effect is
+termed ``memory convergence slip.''
 
 In addition, workloads can be classified into three groups depending on how
 their performance is affected by warp size. Divergent warps perform poorly as
-warp size increases, due to control flow divergence as explained above. Warp-
-size insensitive warps see little to no performance changes with warp size.
+warp size increases, due to control flow divergence as explained above.
+Warp-size insensitive warps see little to no performance changes with warp size.
 Convergent warps actually see better performance as warp size increases, due to
 coalescing execution and memory accesses into a single warp. Increasing warp
 size is better for the latter two types, since larger warps have better energy
 efficiency.
 
-Recent applications are increasingly divergent
-\cite{VariableWarpSize}: raytracing, molecular dynamics simulations, game
-physics simulations, and graph processing are all common applications for GPGPU
-and all contain many divergent warps. To combat this, warp sizes can be adjusted
-dynamically. A minimum of 4 is a good floor value, since graphics workloads
-commonly process ``quads'' (threads in groups of 4) and there are diminishing
-returns for warp sizes any smaller than this. This technique works by splitting
-the traditional datapath into 8 slices, where each slice can fetch, decode, and
-issue independently. Slices are statically assigned threads in a linear fashion
-(0-3 to slice 0, 4-7 to slice 1, etc.), and threads cannot move between slices.
+Recent applications are increasingly divergent: raytracing, molecular dynamics
+simulations, game physics simulations, and graph processing are all common
+applications for GPGPU and all contain many divergent warps. To combat this,
+warp sizes can be adjusted dynamically. A minimum of 4 is a good floor value,
+since graphics workloads commonly process ``quads'' (threads in groups of 4) and
+there are diminishing returns for warp sizes any smaller than this. This
+technique works by splitting the traditional datapath into 8 slices, where each
+slice can fetch, decode, and issue independently. Slices are statically assigned
+threads in a linear fashion (0-3 to slice 0, 4-7 to slice 1, etc.), and threads
+cannot move between slices.
 
 Allowing for variable warp sizes does not alter the register file and requires
 no changes to memory. A warp ganging unit is added that fetches and decodes once
@@ -387,19 +392,19 @@ performance on a 32-wide machine, using 8-wide warps, at the cost of only 2.5\%
 area.
 
 \subsection{Hardware Worklists}
-There are two common approaches to mapping graph algorithms to GPUs. The first
-is topology-driven, in which the current thread index is used to determine on
-which nodes to operate. This approach launches a new kernel for every iteration
-and visits all nodes. Since launching kernels is expensive and some or many
-nodes do not have any useful work to do in a given iteration, this results in
-inefficiencies. The other approach is data-driven, where shared software
-worklists (SWWL) are used to determine which nodes have useful work for a given
-iteration. Only one kernel is launched at the start, and it is refilled with
-work as necessary each iteration. This approach avoids all of the useless work
-found in the topology-driven method, but can require a very large worklist,
-which makes it prone to memory contention or access irregularity. Because of
-this drawback, data-driven mapping is impractical unless aggressive software
-optimizations are made.
+There are two common approaches to mapping graph algorithms to GPUs
+\cite{UsingFineGrainHardwareWorklists}. The first is topology-driven, in which
+the current thread index is used to determine on which nodes to operate. This
+approach launches a new kernel for every iteration and visits all nodes. Since
+launching kernels is expensive and some or many nodes do not have any useful
+work to do in a given iteration, this results in inefficiencies. The other
+approach is data-driven, where shared software worklists (SWWL) are used to
+determine which nodes have useful work for a given iteration. Only one kernel is
+launched at the start, and it is refilled with work as necessary each iteration.
+This approach avoids all of the useless work found in the topology-driven
+method, but can require a very large worklist, which makes it prone to memory
+contention or access irregularity. Because of this drawback, data-driven mapping
+is impractical unless aggressive software optimizations are made.
 
 There are four weaknesses that data-driven optimizations attempt to improve:
 memory contention on pulls, contention on pushes, load balancing, and work
@@ -412,18 +417,17 @@ configuration adjusts the number of threads spawned by a kernel call based on
 the number of active nodes in the worklist.
 
 Even with such optimizations, the data-driven approach is not ideal due to
-remaining memory contention on pushes and poor load balancing. Using fine-
-grained hardware worklists (HWWL) instead of software worklists is one method of
-dealing with such drawbacks
-\cite{UsingFineGrainHardwareWorklists}. This works by exposing the HWWL to the
+remaining memory contention on pushes and poor load balancing. Using
+fine-grained hardware worklists (HWWL) instead of software worklists is one
+method of dealing with such drawbacks. This works by exposing the HWWL to the
 software through simple additions to the ISA. This way an application utilizing
 a SWWL can be easily adapted to use a HWWL. The microarchitecture of the GPU is
 modified to support a HWWL, distributing work to each lane in the GPU. To enable
 better load balancing, empty banks pull from other banks instead of exiting.
-There are two policies for when to redistribute work: interval-based and on-
-demand. The former periodically redistributes work at a given sampling interval.
-This has the advantage of better load balancing, but a higher cost. The
-alternative, on- demand redistribution, only redistributes when a bank pulls or
+There are two policies for when to redistribute work: interval-based and
+on-demand. The former periodically redistributes work at a given sampling
+interval.This has the advantage of better load balancing, but a higher cost. The
+alternative, on-demand redistribution, only redistributes when a bank pulls or
 pushes. This saves energy but has poorer load balancing than the interval-based
 policy.
 
@@ -446,18 +450,19 @@ requirements and adjusting the SM frequency, memory frequency, and number of
 threads executing. A majority of GPU applications are bottlenecked by either a
 lack of compute resources, memory bandwidth, or a limited data cache, and so
 executing the maximum number of threads and the highest frequencies is not
-always beneficial to performance. If a given resource is bottle-necked, the
-other resources become underutilized. For example, the NVIDIA Fermi architecture
-has 48KB of data cache. When spread out over the maximum number of threads that
-can execute at the same time, this leaves only 30 bytes for each.
+always beneficial to performance \cite{EqualizerTuningOfResources}. If a given
+resource is bottle-necked, the other resources become underutilized. For
+example, the NVIDIA Fermi architecture has 48KB of data cache. When spread out
+over the maximum number of threads that can execute at the same time, this
+leaves only 30 bytes for each.
 
 If the characteristics of an application's workload were known before execution,
 the GPU could be tuned to execute the optimal number of threads at the optimal
 SM and DRAM frequencies. Unfortunately, this is often not possible: workloads
 are heavily dependent on the given application, its input, and the specific GPU.
-Equalizer \cite{EqualizerTuningOfResources} is a runtime system that runs on
-individual SMs, determines the resource requirements of kernels, and adjusts the
-number of executing threads and frequencies of the SM and memory.
+Equalizer is a runtime system that runs on individual SMs, determines the
+resource requirements of kernels, and adjusts the number of executing threads
+and frequencies of the SM and memory.
 
 Equalizer determines the overall resource requirements of a kernel based on the
 status of the warps within the kernel. Warps are classified into one of four
@@ -520,11 +525,11 @@ invariant have dynamic predicate uniformity tests inserted.
 
 To linearize the control flow, loops are analyzed with structural analysis.
 After the analysis has determined control flow, the direction of the edges in
-the CFG are reversed, and the CFG is processed in a depth-first post- order
+the CFG are reversed, and the CFG is processed in a depth-first post-order
 traversal. This yields a valid schedule.
 
 Applying these algorithms results in code that is 2.7\% slower on average, with
-little to no area, power, or energy implications. The main motivation for this
+little to no effect on area, power, or energy. The main motivation for this
 approach is that is allows for less hardware design complexity and verification
 costs. From the programmer's point of view, there is no difference. In addition,
 using divergence stack control sometimes results in nondeterministic order of
@@ -589,9 +594,9 @@ do not fit well in the categories so far. The first is compression and
 decompression of register file accesses on a warp level. GPU register files
 contribute up to 15\% of the total GPU chip power, so there are significant
 savings available if the register file can be made more power efficient. One
-past approach has been turning off unused parts of the register file. This saves
-both leakage and dynamic power. Another approach takes advantage of register use
-locality with register file caches.
+past approach has been turning off unused parts of the register file, which
+saves both leakage and dynamic power. Another approach takes advantage of
+register use locality with register file caches.
 
 The technique discussed here is compressing at the warp level
 \cite{WarpCompression}. Some GPU architectures already use data compression. For
@@ -602,26 +607,28 @@ using the selected scheme, and the latency of compressing/decompressing should
 be short. In the past, most schemes have focused on the L2 or last level cache
 to avoid latency issues.
 
-To compress the values used in warps, value similarity is key. This is the
-arithmetic distance between register values. Values across threads in a warp are
-typically similar, since data arrays are commonly accessed using the thread IDs
-of successive threads, and the dynamic range of input data is small for many
-things. Power can be saved by avoiding the repeated storing, reading, and
-writing of redundant data. Distances between successive thread registers are
-calculated and placed into one of four bins: zero distance, which means the two
-values are the same; 128 bin, where the values differ by at most 128; 32K bin,
-where they differ by at most 32K, and the random bin, which holds all values
-that do not fall into any of the first three.
+To compress the values used in warps, the arithmetic distance between register
+values should be small. This is known as value similarity. Values across threads
+in a warp are typically similar, since data arrays are commonly accessed using
+the thread IDs of successive threads, and the dynamic range of input data is
+often small as well. Power can be saved by avoiding the repeated reading and
+writing of mostly redundant data. Distances between successive thread registers
+are thus calculated and used to place the registers into one of four bins: zero
+distance, which means the base register and current register are the same; 128
+bin, where the values differ by at most 128; 32K bin, where they differ by at
+most 32K, and the random bin, which holds all values that do not fall into any
+of the first three.
 
-Keeping in mind the trade-off of compression ratio vs latency, the base-delta-
-immediate (BDI) scheme is most suitable warp compression. This scheme uses a
-base value, and subsequent deltas are added to the base to determine each
-subsequent value. Computed values are compressed before writing to the register
-file and decompressed before reading. Since most warp instructions have two
-sources and one destination, it makes sense to have two decompression units and
-a single compression unit to process one warp per cycle. Since modern GPU
-architectures can process two warps per cycle, the number of each of these is
-doubled, for a total of four decompression units and two compression units.
+Keeping in mind the trade-off of compression ratio vs latency, the
+base-delta-immediate (BDI) scheme is most suitable for warp compression. This
+scheme uses one register a base value, and subsequent deltas are added to the
+base to determine each subsequent register's value. Computed values are
+compressed before writing to the register file and decompressed before reading.
+Since most warp instructions have two sources and one destination, it makes
+sense to have two decompression units and a single compression unit to process
+one warp per cycle. Since modern GPU architectures can process two warps per
+cycle, the number of each of these is doubled, for a total of four decompression
+units and two compression units.
 
 The results of this compression scheme are promising. The area overhead is only
 0.3\% of the total SM size, and an overall 25\% power reduction (35\% dynamic,
@@ -631,29 +638,30 @@ compression and decompression add time, the total performance loss is only
 the massive register files of GPUs.
 
 \subsection{Memory Contention in Heterogeneous Multiprocessing Systems}
-Modern computing system architectures include both a CPU and GPU in a master-
-slave configuration, in which the CPU offloads heavy parallel computations to
-the GPU. In the future, there will likely be many CPUs and GPUs operating in
-conjunction within a single system. These network-on-chip (NoC) configurations
-are called heterogeneous multiprocessing architectures
+Modern computing system architectures include both a CPU and GPU in a
+master-slave configuration, in which the CPU offloads heavy parallel
+computations to the GPU. In the future, there will likely be many CPUs and GPUs
+operating in conjunction within a single system. These network-on-chip (NoC)
+configurations are called heterogeneous multiprocessing architectures
 \cite{ManagingConcurrencyInHeterogeneous}.
 
 CPU applications tend to be more latency sensitive, while GPU applications are
-more bandwidth sensitive. In such heterogeneous architectures containing both,
-GPUs tend to cannibalize the performance of CPUs much more than the other way
-around. The goal of the technique described here is to prevent this
-cannibalization and improve the performance of both kinds of computation. This
-technique assumes a tile-based mesh architecture consisting of both CPUs and
-GPUs. The CPU to GPU ratio is 2:1 because a single GPU SM occupies roughly half
-the space of a CPU core. The last level cache of the system is shared by CPUs
-and GPUs, and they use a shared network and shared memory channels.
+more bandwidth sensitive. In such heterogeneous architectures containing both
+kinds of processors, GPUs tend to cannibalize the performance of CPUs much more
+than the other way around. The goal of the technique described here is to
+prevent this cannibalization and improve the performance of both kinds of
+computation. This technique assumes a tile-based mesh architecture consisting of
+both CPUs and GPUs. The CPU to GPU ratio is assumed to be 2:1 because a single
+GPU SM occupies roughly half the space of a CPU core. The last level cache of
+the system is shared by CPUs and GPUs, and they use a shared network and shared
+memory channels.
 
-GPU concurrency can have a positive or negative effect on other GPU performance.
-Increasing the number of concurrent warps can help performance but can also
-thrash the cache or cause memory congestion. The effects of GPU concurrency on
-CPU performance, however, are much more negative. Memory congestion hurts CPUs
-much more than GPUs, as they do not have enough thread-level parallelism to hide
-the latency.
+GPU concurrency can have a positive or negative effect on other GPU performance,
+since increasing the number of concurrent warps can help performance but can
+also cause cache thrashing and/or memory congestion. The effects of GPU
+concurrency on CPU performance, however, are much more negative. Memory
+congestion hurts CPUs much more than GPUs, as they do not have enough
+thread-level parallelism to hide the latency.
 
 Two schemes are presented to keep GPUs from monopolizing the resources of the
 shared system. The first is CPU-Centric Concurrency Management (CM-CPU). This
@@ -699,9 +707,10 @@ of applications could be unlocked.
 % Acknowledgments
 \begin{acks}
 The author would like to thank Dr. Penry for teaching this course and for
-providing extensive design and learning opportunities in this course. It has
-been a lot of work, but this course has helped the author know that he has
-chosen the right field.
+providing extensive design and learning opportunities throughout the semester.
+It has been a lot of work, but this course has given the author a glimpse into
+what computer architecture is all about and helped him know that he has chosen
+the right field.
 \end{acks}
 
 % Bibliography
